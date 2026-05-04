@@ -29,3 +29,9 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Generated Reports
+report_*.html
+
+# Tasks
+tasks/

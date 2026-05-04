@@ -84,7 +84,7 @@ cp env.example .env
 # Edit .env with your actual values
 ```
 
-- Runㅇ
+- Run
 ```python
 python stock_report.py
 ```
@@ -94,15 +94,25 @@ python stock_report.py
 ```
 Stock_Alert/
 ├── stock_report.py              # Main script
+├── check_dst.py                 # DST auto-adjustment script
 ├── watchlist.txt                # Your stock tickers
 ├── requirements.txt             # Python dependencies
 ├── .env                         # Environment variables (gitignored)
 ├── .github/
 │   └── workflows/
-│       └── daily_stock_report.yml  # GitHub Actions schedule
+│       ├── daily_stock_report.yml  # Daily report schedule
+│       └── check_dst.yml           # Weekly DST check
 └── README.md
 
 ```
+
+## 🕐 DST (Daylight Saving Time) Auto-Adjustment
+
+The system automatically adjusts for US Eastern Time DST changes:
+- **EDT (Summer)**: Runs at 13:00 UTC = 09:00 ET
+- **EST (Winter)**: Runs at 14:00 UTC = 09:00 ET
+
+`check_dst.yml` runs every Monday to update the schedule if needed.
 
 ## 💰 Cost
 
