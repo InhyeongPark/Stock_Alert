@@ -444,12 +444,16 @@ def analyze_with_claude(stock_data: dict, max_retries: int = 5) -> str:
             return analysis_text
 
         except Exception as e:
+            if "401" in str(e) or "authentication" in str(e).lower():
+                log.error(f"API key error for {ticker} — skipping retries: {e}")
+                return f"Analysis Failed (API Key Error): Check the Key"
+
             if attempt < max_retries - 1:
                 log.warning(f"Retry {attempt + 1}/{max_retries} for {ticker}")
                 time.sleep(5)
             else:
                 log.error(f"Failed on Analyzing [{ticker}]: {e}")
-                return f"분석 실패: {e}" if REPORT_LANGUAGE == "ko" else f"Analysis failed: {e}"
+                return f"Analysis Failed: {e}" if REPORT_LANGUAGE == "ko" else f"Analysis failed: {e}"
 
 
 # Step 3: Create HTML Email
