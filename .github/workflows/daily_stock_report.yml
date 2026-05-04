@@ -1,0 +1,36 @@
+# .github/workflows/daily_stock_report.yml
+# Automatically runs every morning at 9:00 AM US Eastern Timesk
+# The settings below are configured for EDT (Daylight Saving Time) 
+
+name: Daily Stock Analysis Report
+
+on:
+  schedule:
+    - cron: "0 13 * * 1-5"   # Mon - Fri New York Time 09:00
+  workflow_dispatch:  # Manual exec button also enabled.
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run stock report
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python stock_report.py

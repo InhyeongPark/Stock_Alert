@@ -1,0 +1,31 @@
+# Env Variables
+.env
+CLAUDE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Log
+*.log
+
+# Test/Cache
+.pytest_cache/
+.coverage
+htmlcov/
