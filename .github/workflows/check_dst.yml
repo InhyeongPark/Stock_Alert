@@ -1,8 +1,8 @@
 name: Check DST and Update Schedule
 
 on:
-  schedule:
-    - cron: "0 10 * * 1"
+  # schedule:
+  #   - cron: "0 10 * * 1"
   workflow_dispatch:
 
 env:

@@ -5,8 +5,8 @@
 name: Daily Stock Analysis Report
 
 on:
-  schedule:
-    - cron: "0 13 * * 1-5"   # Mon - Fri New York Time 09:00
+  # schedule:
+  #   - cron: "0 13 * * 1-5"   # Mon - Fri New York Time 09:00
   workflow_dispatch:  # Manual exec button also enabled.
 
 env:
