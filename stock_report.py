@@ -429,7 +429,7 @@ def analyze_with_claude(stock_data: dict, max_retries: int = 5) -> str:
         try:
             response = client.messages.create(
                 model=CLAUDE_MODEL,
-                max_tokens=4000,
+                max_tokens=16000,
                 tools=[{"type": "web_search_20250305", "name": "web_search"}],
                 messages=[{"role": "user", "content": prompt}],
             )
@@ -624,6 +624,11 @@ def main():
         analysis = analyze_with_claude(stock_data)
 
         analyses.append((stock_data, analysis))
+
+        # To avoid Rate Limit
+        if ticker != watchlist[-1]:
+            log.info(f"Wait for 60s to avoid Rate Limit")
+            time.sleep(60)
 
     if not analyses:
         log.error("No Data to Analyze")
