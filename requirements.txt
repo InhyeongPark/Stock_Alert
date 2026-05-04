@@ -4,4 +4,4 @@ pandas_ta>=0.3.14
 anthropic>=0.40.0
 python-dotenv>=1.0.0
 tzdata
-
+exchange_calendars>=4.5.0

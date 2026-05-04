@@ -16,6 +16,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from exchange_calendars import get_calendar
 
 import yfinance as yf
 import pandas_ta as ta
@@ -662,6 +663,13 @@ def send_email(html_content: str, watchlist: list[str]):
 
 # Main 
 def main():
+    # Check if today's holiday
+    nyse = get_calendar("XNYS")
+    today = datetime.now(TZ).date()
+    if not nyse.is_session(today):
+        log.info("Today - Holiday: No Report")
+        return
+
     # Load Watchlist
     watchlist = load_watchlist(WATCHLIST_FILE)
     if not watchlist:
@@ -680,7 +688,8 @@ def main():
         # 1. Collect Stock Data
         stock_data = fetch_stock_data(ticker)
         if stock_data is None:
-            continue
+            break
+        
 
         # 2. Analyze via Claude
         analysis = analyze_with_claude(stock_data)

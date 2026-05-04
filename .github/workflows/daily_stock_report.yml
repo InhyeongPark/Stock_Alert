@@ -1,13 +1,10 @@
 # .github/workflows/daily_stock_report.yml
-# Automatically runs every morning at 9:00 AM US Eastern Timesk
-# The settings below are configured for EDT (Daylight Saving Time) 
+# Triggered by cron-job.org (external) or manual dispatch
 
 name: Daily Stock Analysis Report
 
 on:
-  # schedule:
-  #   - cron: "0 13 * * 1-5"   # Mon - Fri New York Time 09:00
-  workflow_dispatch:  # Manual exec button also enabled.
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -20,6 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,4 +35,12 @@ jobs:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
-        run: python stock_report.py
+        run: python StockReport.py
+
+      - name: Commit usage log
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add UsageLog.json
+          git diff --staged --quiet || git commit -m "Update usage log $(date +%Y-%m-%d)"
+          git push
