@@ -276,6 +276,37 @@ Stochastic: K={stock_data['stoch_k']} / D={stock_data['stoch_d']}
 
 다음 형식으로 반드시 작성해주세요:
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ 핵심 요약 (이 섹션을 가장 먼저, 반드시 작성)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ⚡ 핵심 액션 요약
+
+**현재 진입 적합성: [매우적극 / 적극 / 중립 / 관망 / 위험]**
+
+### 🎯 진입 타이밍
+| 구분 | 가격 | 근거 (한 줄) |
+|------|------|-------------|
+| 1차 진입 (공격적) | $XX.XX | [핵심 근거] |
+| 2차 진입 (중립적) | $XX.XX | [핵심 근거] |
+| 3차 진입 (보수적) | $XX.XX | [핵심 근거] |
+
+### 🛑 손절 타이밍
+| 구분 | 가격 | 근거 (한 줄) |
+|------|------|-------------|
+| 1차 손절 (타이트) | $XX.XX | [핵심 근거] |
+| 2차 손절 (중간) | $XX.XX | [핵심 근거] |
+| 3차 손절 (와이드) | $XX.XX | [핵심 근거] |
+
+### 📅 전망
+- 단기(1주): 
+- 중기(1개월): 
+- 장기(3개월): 
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 상세 분석 (아래부터 상세 내용)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ## 📰 최신 뉴스 & 이슈
 - 최근 1주일 내 주요 뉴스 3~5개를 요약 (출처 포함)
 - 실적 발표 일정, 애널리스트 의견, 산업 동향 등
@@ -372,6 +403,37 @@ write a comprehensive analysis report.
 {tech_summary}
 
 Please write in the following format:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ Executive Summary (Complete this section first—it is mandatory)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ⚡ Key Action Summary
+
+**Current Entry Suitability: [Highly Aggressive / Aggressive / Neutral / Watch & Wait / Risky]**
+
+### 🎯 Entry Timing
+| Category | Price | Rationale (One Line) |
+|------|------|-------------|
+| 1st Entry (Aggressive) | $XX.XX | [Key Rationale] |
+| 2nd Entry (Neutral) | $XX.XX | [Key Rationale] |
+| 3rd Entry (Conservative) | $XX.XX | [Key Rationale] |
+
+### 🛑 Stop-Loss Timing
+| Category | Price | Rationale (One Line) |
+|------|------|-------------|
+| 1st Stop-Loss (Tight) | $XX.XX | [Key Rationale] |
+| 2nd Stop-Loss (Intermediate) | $XX.XX | [Key Rationale] |
+| 3rd Stop-Loss (Wide) | $XX.XX | [Key Rationale] |
+
+### 📅 Outlook
+- Short-Term (1 Week):
+- Mid-Term (1 Month):
+- Long-Term (3 Months):
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 Detailed Analysis (Detailed content begins below)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## 📰 Latest News & Issues
 - Summarize 3-5 major news items from the past week (include sources)
