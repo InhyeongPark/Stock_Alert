@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 WATCHLIST_FILE = "watchlist.txt"
 
 # Claude Model
-CLAUDE_MODEL = "claude-opus-4-20250514"
+CLAUDE_MODEL = "claude-sonnet-4-6"
 
 # Report Language: "ko" (Korean, Default) || "en" (English)
 REPORT_LANGUAGE = "ko"
