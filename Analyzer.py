@@ -7,9 +7,9 @@ import logging
 
 import anthropic
 
-from Config import CLAUDE_MODEL, MAX_OUTPUT_TOKENS, WEB_SEARCH_MAX_USES
-from Prompts import get_analysis_prompt
-from UsageTracker import UsageTracker
+from config import CLAUDE_MODEL, MAX_OUTPUT_TOKENS, WEB_SEARCH_MAX_USES
+from prompts import get_analysis_prompt
+from usage_tracker import UsageTracker
 
 log = logging.getLogger(__name__)
 

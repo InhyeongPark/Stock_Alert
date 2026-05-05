@@ -8,11 +8,11 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from Config import CLAUDE_MODEL, MODEL_PRICING, TZ
+from config import CLAUDE_MODEL, MODEL_PRICING, TZ
 
 log = logging.getLogger(__name__)
 
-USAGE_LOG_FILE = "UsageLog.json"
+USAGE_LOG_FILE = "usage_log.json"
 
 # Web search pricing (per request, approximate)
 WEB_SEARCH_COST_PER_REQUEST = 0.01

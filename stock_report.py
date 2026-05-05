@@ -29,7 +29,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # Imports from project modules
-from Config import (
+from config import (
     TZ,
     REPORT_LANGUAGE,
     WATCHLIST_FILE,
@@ -37,11 +37,11 @@ from Config import (
     RETRY_DELAY_SECONDS,
     TICKER_DELAY_SECONDS,
 )
-from MarketCalendar import is_market_open_today
-from DataFetcher import load_watchlist, fetch_stock_data
-from Analyzer import analyze_with_claude
-from EmailBuilder import build_email_html
-from EmailSender import send_email
+from market_calendar import is_market_open_today
+from data_fetcher import load_watchlist, fetch_stock_data
+from analyzer import analyze_with_claude
+from email_builder import build_email_html
+from email_sender import send_email
 from UsageTracker import UsageTracker
 
 

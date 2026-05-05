@@ -8,7 +8,7 @@ from datetime import datetime
 
 import exchange_calendars as xcals
 
-from Config import EXCHANGE_MIC, TZ
+from config import EXCHANGE_MIC, TZ
 
 log = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ All formatting / template logic lives here — no business logic.
 import re
 from datetime import datetime
 
-from Config import CLAUDE_MODEL, TZ, REPORT_LANGUAGE
+from config import CLAUDE_MODEL, TZ, REPORT_LANGUAGE
 
 
 def build_email_html(

@@ -43,17 +43,17 @@ Watchlist (Watchlist.txt)
 
 ```
 Stock_Alert/
-├── StockReport.py              # Main orchestrator (~100 lines)
-├── Config.py                   # Models, pricing, settings (single source of truth)
-├── DataFetcher.py              # yfinance data collection + options chain
-├── Analyzer.py                 # Claude API call (no internal retry)
-├── Prompts.py                  # Prompt templates (Korean & English)
-├── EmailBuilder.py             # HTML generation + markdown conversion
-├── EmailSender.py              # Gmail SMTP
-├── UsageTracker.py             # Token/cost tracking + monthly persistence
-├── MarketCalendar.py           # NYSE holiday detection
-├── Watchlist.txt               # Your stock tickers (one per line)
-├── UsageLog.json              # Monthly cost log (auto-generated, committed by CI)
+├── stock_report.py              # Main orchestrator (~100 lines)
+├── config.py                   # Models, pricing, settings (single source of truth)
+├── data_fetcher.py              # yfinance data collection + options chain
+├── analyzer.py                 # Claude API call (no internal retry)
+├── prompts.py                  # Prompt templates (Korean & English)
+├── email_builder.py             # HTML generation + markdown conversion
+├── email_sender.py              # Gmail SMTP
+├── usage_tracker.py             # Token/cost tracking + monthly persistence
+├── market_calendar.py           # NYSE holiday detection
+├── watchlist.txt               # Your stock tickers (one per line)
+├── usage_log.json              # Monthly cost log (auto-generated, committed by CI)
 ├── requirements.txt            # Python dependencies
 ├── .env                        # Environment variables (gitignored)
 ├── .github/
