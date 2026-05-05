@@ -21,7 +21,7 @@ Automatically analyzes your watchlist stocks with **news collection + technical 
 ## 🏗️ Architecture
 
 ```
-Watchlist (Watchlist.txt)
+Watchlist (watchlist.txt)
     ↓
 ⓪ Check if NYSE is open today (skip holidays)
     ↓
@@ -87,7 +87,7 @@ Stock_Alert/
 
 ### Step 3: Edit Your Watchlist
 
-Edit `Watchlist.txt` — one ticker per line, `#` for comments:
+Edit `watchlist.txt` — one ticker per line, `#` for comments:
 
 ```
 MSFT    # Microsoft

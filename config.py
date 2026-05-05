@@ -29,7 +29,7 @@ TZ = ZoneInfo("America/New_York")
 # Retry / Rate Limit
 MAX_RETRIES = 5                 # Per ticker: covers both fetch + analyze
 RETRY_DELAY_SECONDS = 10        # Wait between retries on failure
-TICKER_DELAY_SECONDS = 60       # Wait between tickers to avoid rate limit
+TICKER_DELAY_SECONDS = 45       # Wait between tickers to avoid rate limit
 
 # Market Calendar
 # ISO 10383 MIC code for NYSE (exchange_calendars standard)
