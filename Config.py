@@ -9,7 +9,6 @@ from zoneinfo import ZoneInfo
 # Available models (uncomment the one you want):
 CLAUDE_MODEL = "claude-sonnet-4-6"          # $3/$15 per MTok — recommended
 # CLAUDE_MODEL = "claude-opus-4-7"          # $5/$25 per MTok — highest quality
-# CLAUDE_MODEL = "claude-haiku-4-5-20251001" # $1/$5 per MTok  — cheapest
 
 # Pricing lookup (used for cost tracking)
 MODEL_PRICING = {
@@ -22,7 +21,7 @@ WEB_SEARCH_MAX_USES = 5        # Limit web searches per ticker for cost control
 
 # Report Settings
 REPORT_LANGUAGE = "ko"          # "ko" (Korean) or "en" (English)
-WATCHLIST_FILE = "Watchlist.txt"
+WATCHLIST_FILE = "watchlist.txt"
 
 # Timezone
 TZ = ZoneInfo("America/New_York")

@@ -42,7 +42,7 @@ from data_fetcher import load_watchlist, fetch_stock_data
 from analyzer import analyze_with_claude
 from email_builder import build_email_html
 from email_sender import send_email
-from UsageTracker import UsageTracker
+from usage_tracker import UsageTracker
 
 
 def main():
