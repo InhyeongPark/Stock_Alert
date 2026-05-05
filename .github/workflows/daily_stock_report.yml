@@ -35,12 +35,12 @@ jobs:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
-        run: python StockReport.py
+        run: python stock_report.py
 
       - name: Commit usage log
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add UsageLog.json
+          git add usage_log.json || true
           git diff --staged --quiet || git commit -m "Update usage log $(date +%Y-%m-%d)"
-          git push
+          git push || true

@@ -33,36 +33,22 @@ def build_email_html(
             "Investment decisions are your own responsibility."
         )
 
-    # Build stock cards
-    cards_html = ""
-    for stock_data, analysis in analyses:
-        cards_html += _build_stock_card(stock_data, analysis)
-
-    # Build usage section
+    cards_html = "".join(_build_stock_card(sd, a) for sd, a in analyses)
     usage_html = _build_usage_section(usage_summary) if usage_summary else ""
 
-    # Assemble full email
     return f"""<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,
              BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
     <div style="max-width:720px;margin:0 auto;padding:20px;">
-
-        <!-- Header -->
         <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);
                     border-radius:12px;padding:28px;margin-bottom:24px;text-align:center;">
             <h1 style="margin:0;color:#ffffff;font-size:24px;">{header_title}</h1>
             <p style="margin:8px 0 0;color:#bfdbfe;font-size:14px;">{header_sub}</p>
         </div>
-
-        <!-- Stock Cards -->
         {cards_html}
-
-        <!-- Usage Stats -->
         {usage_html}
-
-        <!-- Disclaimer -->
         <div style="text-align:center;padding:20px;color:#9ca3af;font-size:11px;
                     border-top:1px solid #e5e7eb;margin-top:16px;">
             {disclaimer}<br><br>
@@ -75,13 +61,11 @@ def build_email_html(
 
 
 def _build_stock_card(stock_data: dict, analysis: str) -> str:
-    """Build a single stock card HTML block."""
     ticker = stock_data["ticker"]
     price = stock_data["current_price"]
     change = stock_data["daily_change_pct"]
     change_color = "#22c55e" if change >= 0 else "#ef4444"
     change_arrow = "▲" if change >= 0 else "▼"
-
     analysis_html = _markdown_to_html(analysis)
 
     return f"""
@@ -110,12 +94,11 @@ def _build_stock_card(stock_data: dict, analysis: str) -> str:
 
 
 def _build_usage_section(summary: dict) -> str:
-    """Build the API usage stats HTML block shown before the disclaimer."""
-
     today_cost = summary.get("today_cost_usd", 0)
     monthly_cost = summary.get("monthly_cost_usd", 0)
     total_in = summary.get("total_input_tokens", 0)
     total_out = summary.get("total_output_tokens", 0)
+    total_ws = summary.get("total_web_searches", 0)
     model = summary.get("model", CLAUDE_MODEL)
 
     if REPORT_LANGUAGE == "ko":
@@ -125,6 +108,7 @@ def _build_usage_section(summary: dict) -> str:
                 f"<tr><td style='padding:4px 8px;'>{t['ticker']}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['input_tokens']:,}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['output_tokens']:,}</td>"
+                f"<td style='padding:4px 8px;text-align:right;'>{t['web_searches']}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>${t['cost_usd']:.4f}</td></tr>"
             )
 
@@ -137,6 +121,7 @@ def _build_usage_section(summary: dict) -> str:
                     <th style="padding:6px 8px;text-align:left;">종목</th>
                     <th style="padding:6px 8px;text-align:right;">Input</th>
                     <th style="padding:6px 8px;text-align:right;">Output</th>
+                    <th style="padding:6px 8px;text-align:right;">검색</th>
                     <th style="padding:6px 8px;text-align:right;">비용</th>
                 </tr>
                 {per_ticker_rows}
@@ -144,6 +129,7 @@ def _build_usage_section(summary: dict) -> str:
                     <td style="padding:6px 8px;">합계</td>
                     <td style="padding:6px 8px;text-align:right;">{total_in:,}</td>
                     <td style="padding:6px 8px;text-align:right;">{total_out:,}</td>
+                    <td style="padding:6px 8px;text-align:right;">{total_ws}</td>
                     <td style="padding:6px 8px;text-align:right;">${today_cost:.4f}</td>
                 </tr>
             </table>
@@ -160,6 +146,7 @@ def _build_usage_section(summary: dict) -> str:
                 f"<tr><td style='padding:4px 8px;'>{t['ticker']}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['input_tokens']:,}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['output_tokens']:,}</td>"
+                f"<td style='padding:4px 8px;text-align:right;'>{t['web_searches']}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>${t['cost_usd']:.4f}</td></tr>"
             )
 
@@ -172,6 +159,7 @@ def _build_usage_section(summary: dict) -> str:
                     <th style="padding:6px 8px;text-align:left;">Ticker</th>
                     <th style="padding:6px 8px;text-align:right;">Input</th>
                     <th style="padding:6px 8px;text-align:right;">Output</th>
+                    <th style="padding:6px 8px;text-align:right;">Searches</th>
                     <th style="padding:6px 8px;text-align:right;">Cost</th>
                 </tr>
                 {per_ticker_rows}
@@ -179,6 +167,7 @@ def _build_usage_section(summary: dict) -> str:
                     <td style="padding:6px 8px;">Total</td>
                     <td style="padding:6px 8px;text-align:right;">{total_in:,}</td>
                     <td style="padding:6px 8px;text-align:right;">{total_out:,}</td>
+                    <td style="padding:6px 8px;text-align:right;">{total_ws}</td>
                     <td style="padding:6px 8px;text-align:right;">${today_cost:.4f}</td>
                 </tr>
             </table>
@@ -191,39 +180,25 @@ def _build_usage_section(summary: dict) -> str:
 
 
 def _markdown_to_html(text: str) -> str:
-    """Simple markdown → inline HTML conversion for email rendering."""
     html = text
-
-    # Headers: ## → <h3>
     html = re.sub(
         r"^## (.+)$",
         r"<h3 style='color:#1e40af;margin-top:20px;margin-bottom:8px;"
         r"border-bottom:2px solid #e5e7eb;padding-bottom:6px;'>\1</h3>",
-        html,
-        flags=re.MULTILINE,
+        html, flags=re.MULTILINE,
     )
-    # Headers: ### → <h4>
     html = re.sub(
         r"^### (.+)$",
         r"<h4 style='color:#1e40af;margin-top:16px;margin-bottom:6px;'>\1</h4>",
-        html,
-        flags=re.MULTILINE,
+        html, flags=re.MULTILINE,
     )
-
-    # Bold
     html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", html)
-
-    # Markdown tables → HTML tables
     html = _convert_md_tables(html)
-
-    # Line breaks
     html = html.replace("\n", "<br>")
-
     return html
 
 
 def _convert_md_tables(text: str) -> str:
-    """Convert simple markdown tables to styled HTML tables."""
     lines = text.split("\n")
     result = []
     table_lines = []
@@ -232,7 +207,6 @@ def _convert_md_tables(text: str) -> str:
     for line in lines:
         stripped = line.strip()
         if stripped.startswith("|") and stripped.endswith("|"):
-            # Skip separator rows like |---|---|
             if re.match(r"^\|[\s\-:|]+\|$", stripped):
                 continue
             table_lines.append(stripped)
@@ -251,23 +225,19 @@ def _convert_md_tables(text: str) -> str:
 
 
 def _table_lines_to_html(lines: list[str]) -> str:
-    """Convert a group of markdown table lines into an HTML table."""
     html = (
         "<table style='width:100%;border-collapse:collapse;margin:12px 0;"
         "font-size:13px;'>"
     )
-
     for i, line in enumerate(lines):
         cells = [c.strip() for c in line.strip("|").split("|")]
         tag = "th" if i == 0 else "td"
         bg = "background:#f3f4f6;" if i == 0 else ""
         border = "border:1px solid #e5e7eb;padding:6px 10px;"
-
         row = "<tr>"
         for cell in cells:
             row += f"<{tag} style='{border}{bg}'>{cell}</{tag}>"
         row += "</tr>"
         html += row
-
     html += "</table>"
     return html

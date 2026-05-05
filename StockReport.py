@@ -64,7 +64,7 @@ def main():
     log.info(f"   Tickers: {', '.join(watchlist)}")
     log.info(f"   Language: {'한글' if REPORT_LANGUAGE == 'ko' else 'English'}")
 
-    # Step 2: Fetch + Analyze each ticker (with unified retry)
+    # Step 2: Fetch + Analyze each ticker (with unified retry) 
     tracker = UsageTracker()
     analyses: list[tuple[dict, str]] = []
     failed_tickers: list[str] = []
@@ -74,20 +74,20 @@ def main():
 
         for attempt in range(MAX_RETRIES):
             try:
-                # Step 2A: Fetch stock data
+                # 2a. Fetch stock data
                 stock_data = fetch_stock_data(ticker)
                 if stock_data is None:
                     log.warning(f"{ticker}: no data, skipping")
-                    break
+                    break  # data issue, don't retry
 
-                # Step 2B: Analyze with Claude
+                # 2b. Analyze with Claude
                 analysis = analyze_with_claude(stock_data, REPORT_LANGUAGE, tracker)
 
-                # Step 2C: Check if analysis is a failure message
+                # 2c. Check if analysis is a failure message
                 if analysis.startswith("분석 실패") or analysis.startswith("Analysis Failed"):
                     log.warning(f"{ticker}: analysis returned failure message")
                     failed_tickers.append(ticker)
-                    break 
+                    break  # non-retryable failure (e.g., auth error)
 
                 analyses.append((stock_data, analysis))
                 success = True
@@ -99,7 +99,7 @@ def main():
                     f"{ticker}: attempt {attempt + 1}/{MAX_RETRIES} failed — {e}"
                 )
                 if attempt < MAX_RETRIES - 1:
-                    wait = RETRY_DELAY_SECONDS * (attempt + 1)
+                    wait = RETRY_DELAY_SECONDS * (attempt + 1)  # progressive backoff
                     log.info(f"Waiting {wait}s before retry...")
                     time.sleep(wait)
                 else:
@@ -116,8 +116,8 @@ def main():
         return
 
     # Step 3: Save usage
+    usage_summary = tracker.get_summary()  # BEFORE save_daily to avoid double-counting
     tracker.save_daily()
-    usage_summary = tracker.get_summary()
 
     # Step 4: Build HTML email
     html = build_email_html(analyses, usage_summary)

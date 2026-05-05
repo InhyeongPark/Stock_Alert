@@ -1,6 +1,7 @@
 # Env Variables
 .env
 CLAUDE.md
+.claude
 
 # Python
 __pycache__/

@@ -15,23 +15,23 @@ CLAUDE_MODEL = "claude-sonnet-4-6"          # $3/$15 per MTok — recommended
 MODEL_PRICING = {
     "claude-sonnet-4-6":          {"input": 3.0,  "output": 15.0},
     "claude-opus-4-7":            {"input": 5.0,  "output": 25.0},
-    "claude-haiku-4-5-20251001":  {"input": 1.0,  "output": 5.0},
 }
 
-MAX_OUTPUT_TOKENS = 16000
+MAX_OUTPUT_TOKENS = 8000        # Reduced from 16000; paired with conciseness prompt
+WEB_SEARCH_MAX_USES = 5        # Limit web searches per ticker for cost control
 
-# ─── Report Settings ─────────────────────────────────────────────
+# Report Settings
 REPORT_LANGUAGE = "ko"          # "ko" (Korean) or "en" (English)
 WATCHLIST_FILE = "Watchlist.txt"
 
-# ─── Timezone ────────────────────────────────────────────────────
+# Timezone
 TZ = ZoneInfo("America/New_York")
 
-# ─── Retry / Rate Limit ─────────────────────────────────────────
+# Retry / Rate Limit
 MAX_RETRIES = 5                 # Per ticker: covers both fetch + analyze
 RETRY_DELAY_SECONDS = 10        # Wait between retries on failure
 TICKER_DELAY_SECONDS = 60       # Wait between tickers to avoid rate limit
 
-# ─── Market Calendar ─────────────────────────────────────────────
+# Market Calendar
 # ISO 10383 MIC code for NYSE (exchange_calendars standard)
 EXCHANGE_MIC = "XNYS"

@@ -7,7 +7,7 @@ import logging
 
 import anthropic
 
-from Config import CLAUDE_MODEL, MAX_OUTPUT_TOKENS
+from Config import CLAUDE_MODEL, MAX_OUTPUT_TOKENS, WEB_SEARCH_MAX_USES
 from Prompts import get_analysis_prompt
 from UsageTracker import UsageTracker
 
@@ -34,11 +34,15 @@ def analyze_with_claude(
         response = client.messages.create(
             model=CLAUDE_MODEL,
             max_tokens=MAX_OUTPUT_TOKENS,
-            tools=[{"type": "web_search_20250305", "name": "web_search"}],
+            tools=[{
+                "type": "web_search_20250305",
+                "name": "web_search",
+                "max_uses": WEB_SEARCH_MAX_USES,
+            }],
             messages=[{"role": "user", "content": prompt}],
         )
 
-        # Track usage
+        # Track usage (tokens + web search count)
         tracker.record(ticker, response.usage)
 
         # Check if response was truncated
@@ -55,12 +59,10 @@ def analyze_with_claude(
         return analysis_text
 
     except anthropic.AuthenticationError as e:
-        # 401 — never retryable
         log.error(f"{ticker}: API key invalid — {e}")
         return "분석 실패 (API 키 오류): 키를 확인하세요"
 
     except (anthropic.RateLimitError, anthropic.InternalServerError, anthropic.APIStatusError) as e:
-        # 429, 500, 529 etc. — retryable, re-raise so main() handles it
         log.warning(f"{ticker}: retryable error — {e}")
         raise
 
