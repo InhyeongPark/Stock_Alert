@@ -5,83 +5,83 @@
       "total_calls": 9,
       "analysis_calls": 9,
       "review_calls": 0,
-      "input_tokens": 585837,
-      "output_tokens": 63799,
-      "web_searches": 32,
-      "cost_usd": 3.0345,
+      "input_tokens": 571902,
+      "output_tokens": 64107,
+      "web_searches": 29,
+      "cost_usd": 2.9673,
       "model": "claude-sonnet-4-6",
       "calls": [
         {
           "ticker": "MSFT",
           "call_type": "analysis",
-          "input_tokens": 65135,
-          "output_tokens": 7523,
+          "input_tokens": 78017,
+          "output_tokens": 6711,
           "web_searches": 4,
-          "cost_usd": 0.3483
+          "cost_usd": 0.3747
         },
         {
           "ticker": "ORCL",
           "call_type": "analysis",
-          "input_tokens": 59593,
-          "output_tokens": 7678,
+          "input_tokens": 61429,
+          "output_tokens": 7905,
           "web_searches": 3,
-          "cost_usd": 0.3239
+          "cost_usd": 0.3329
         },
         {
           "ticker": "VST",
           "call_type": "analysis",
-          "input_tokens": 79737,
-          "output_tokens": 7453,
-          "web_searches": 4,
-          "cost_usd": 0.391
+          "input_tokens": 66304,
+          "output_tokens": 6411,
+          "web_searches": 3,
+          "cost_usd": 0.3251
         },
         {
           "ticker": "OKLO",
           "call_type": "analysis",
-          "input_tokens": 68302,
-          "output_tokens": 6851,
-          "web_searches": 4,
-          "cost_usd": 0.3477
+          "input_tokens": 63662,
+          "output_tokens": 6721,
+          "web_searches": 3,
+          "cost_usd": 0.3218
         },
         {
           "ticker": "SMR",
           "call_type": "analysis",
-          "input_tokens": 65288,
-          "output_tokens": 6620,
+          "input_tokens": 66998,
+          "output_tokens": 7388,
           "web_searches": 3,
-          "cost_usd": 0.3252
+          "cost_usd": 0.3418
         },
         {
           "ticker": "IREN",
           "call_type": "analysis",
-          "input_tokens": 61763,
-          "output_tokens": 6884,
+          "input_tokens": 61624,
+          "output_tokens": 7376,
           "web_searches": 4,
-          "cost_usd": 0.3285
+          "cost_usd": 0.3355
         },
         {
           "ticker": "CORZ",
           "call_type": "analysis",
-          "input_tokens": 60129,
-          "output_tokens": 6788,
-          "web_searches": 4,
-          "cost_usd": 0.3222
+          "input_tokens": 50872,
+          "output_tokens": 6916,
+          "web_searches": 3,
+          "cost_usd": 0.2864
         },
         {
           "ticker": "AVAV",
           "call_type": "analysis",
-          "input_tokens": 63720,
-          "output_tokens": 6806,
+          "input_tokens": 60635,
+          "output_tokens": 7083,
           "web_searches": 3,
-          "cost_usd": 0.3233
+          "cost_usd": 0.3182
         },
         {
           "ticker": "ONDS",
           "call_type": "analysis",
-          "input_tokens": 62170,
-          "output_tokens": 7196,
+          "input_tokens": 62361,
+          "output_tokens": 7596,
           "web_searches": 3,
-          "cost_usd": 0.3245
+          "cost_usd": 0.331
         }
       ]
     }

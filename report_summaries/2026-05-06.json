@@ -1,6 +1,6 @@
 {
   "date": "2026-05-06",
-  "generated_at": "2026-05-06T02:51:39.636416-04:00",
+  "generated_at": "2026-05-06T09:26:31.479175-04:00",
   "tickers": [
     {
       "ticker": "MSFT",
@@ -12,32 +12,40 @@
       "entry_prices": [
         407.63,
         401.59,
-        392.0
+        395.0
       ],
       "stop_prices": [
-        394.5,
-        385.2,
-        379.5
+        395.5,
+        387.22,
+        380.0
       ],
-      "outlook_short": "캐펙스 충격·OpenAI 이슈로 $407~$415 박스권 횡보, 방향성 돌파 어려움",
-      "outlook_mid": "Azure Q4 가이던스 확인 및 Copilot 매출 가속 여부가 $395~$430 범위 결정 요인",
-      "outlook_long": "AI 수익화 본격화·캐펙스 사이클 완화 시 $460~$500 목표, 월가 TP $576 대비 40% 업사이드 잠재력 유효",
+      "outlook_short": "$407~$420 박스권 등락, MACD 음전환·거래량 감소로 단기 방향성 불확실",
+      "outlook_mid": "capex 우려 소화 시 $425~$433 저항 재도전 가능, $407 이탈 시 $394~$396 조정",
+      "outlook_long": "AI ARR $37B+ 가속·Azure 39~40% 성장 유지 시 $460~$490 목표, 애널리스트 컨센서스 $576",
       "key_reasons": [
-        "FQ3 실적 양호(매출 +18%, Azure +40%)하나 $190B 캐펙스 충격과 FCF -22% 하락이 상방 억제",
-        "OpenAI 독점 파트너십 종료 + 커머셜 북킹 -46%로 단기 성장 내러티브 복잡성 증가",
-        "현재가는 120일 최대 매물대($402~$418, 거래량 710M) 중앙 위치로 방향 돌파 전 횡보 가능성 높음"
+        "FY26 Q3 매출 $82.9B(+18%), EPS $4.27(+23%) 어닝 서프라이즈, AI ARR $37B(+123%) 강한 펀더멘털",
+        "capex $190B(+61% YoY, 컨센서스 23% 초과) 및 Commercial Bookings -46% 쇼크로 단기 주가 상승 차단",
+        "OpenAI 독점계약 해제·자발적 희망퇴직 등 구조적 불확실성으로 단기 overhang 존재, 최대 매물대($402~$417) 내 방향성 탐색 중"
       ],
       "summary_parse_status": "ok",
       "entry_style": "1-4 week pullback / staged accumulation",
       "risk_style": "technical invalidation plus thesis risk",
       "polymarket": {
-        "available": false,
+        "available": true,
         "ticker": "MSFT",
-        "reason": "No relevant prediction market found"
+        "question": "Will Microsoft Corporation (MSFT) hit (LOW) $390 in May?",
+        "probability_yes_pct": 39.5,
+        "probability_no_pct": 60.5,
+        "question_direction": "unknown",
+        "polymarket_direction": "unknown",
+        "liquidity_usd": 1031.0,
+        "end_date": "2026-06-01T03:59:59.999Z",
+        "market_id": "2073901",
+        "url": "https://polymarket.com/event/will-msft-dip-to-390-in-may-2026"
       },
       "polymarket_comparison": {
-        "match": "N/A",
-        "message": "Polymarket에 관련 시장 없음",
+        "match": "중립",
+        "message": "Claude(bullish) vs Polymarket(unknown, 39.5%) — 한쪽 불확실, 추가 확인 필요",
         "confidence_boost": 0
       },
       "polymarket_claude_review": {
@@ -51,8 +59,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -61,7 +69,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -71,7 +79,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -84,22 +92,22 @@
       "entry_suitability": "중립",
       "direction": "bullish",
       "entry_prices": [
-        180.29,
-        174.0,
-        165.0
+        180.5,
+        174.75,
+        166.0
       ],
       "stop_prices": [
         176.5,
-        170.0,
-        158.0
+        168.5,
+        160.0
       ],
-      "outlook_short": "5일 연속 급등 후 $186.52 저항 직전 위치, 거래량 부족(0.7x)으로 추가 돌파 모멘텀 제한적, 단기 조정 후 $180 지지 확인이 관건",
-      "outlook_mid": "Q4 FY2026 실적(6월 8일 예정) 전후 변동성 확대, OpenAI 관련 노이즈 재발 시 재조정 위험, SMA200($210.49) 회복이 중기 강세 전환의 핵심 조건",
-      "outlook_long": "AI 인프라 테마·$553B 수주잔고·멀티클라우드 전략으로 $200~225(Wedbush TP) 회복 가능성 유효, 단 $125B 부채·FCF 마이너스·인사이더 매도가 구조적 리스크",
+      "outlook_short": "피보나치 50% 저항($185.29)·단기 저항($186.52) 돌파 여부 확인 중, 실패 시 $178~$180 재조정 예상",
+      "outlook_mid": "6월 10일 Q4 실적 발표 전후 $165~$195 박스권 변동성 지속, OpenAI 뉴스플로우가 단기 방향성 결정",
+      "outlook_long": "AI 인프라 $553B RPO·클라우드 +44% 성장 기반 $210~$230 회복 시나리오 유효, FCF 마이너스·고부채 리스크 상존",
       "key_reasons": [
-        "단기 급등 피로(5일 +13.1%, RSI 64.5)와 저항 클러스터($186.52~$189.18) 직전 위치로 즉시 추격 매수 리스크 높음",
-        "펀더멘털 강점: $553B 수주잔고, Q3 FY2026 매출 +22%·클라우드 +44%, Wall Street 컨센서스 평균 TP $243(+31% 업사이드)",
-        "핵심 리스크: 장기부채 $125B·FCF 마이너스·OpenAI 단일 고객 집중·인사이더 6건 매도·SMA200($210.49) 하방 위치"
+        "현재가 $185.35가 중기 피보나치 50% 되돌림($185.29)·매물대 상단($185.36)·즉각 저항($186.52)에 정확히 중첩 — 추격 매수 부적합",
+        "Q3 FY2026 클라우드 매출 +44% YoY·RPO $553B·EPS 어닝서프라이즈 등 펀더멘털 강세, Wedbush $225 목표가 신규 커버리지",
+        "OpenAI 실적 불확실성·$125B 장기부채·FCF 마이너스·20,000~30,000명 구조조정이 단기 변동성 확대 요인으로 상존"
       ],
       "summary_parse_status": "ok",
       "entry_style": "1-4 week pullback / staged accumulation",
@@ -125,8 +133,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -135,7 +143,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -145,7 +153,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -158,24 +166,24 @@
       "entry_suitability": "중립",
       "direction": "bullish",
       "entry_prices": [
-        158.5,
-        155.5,
-        153.5
+        159.37,
+        157.0,
+        153.1
       ],
       "stop_prices": [
-        151.5,
-        148.0,
-        145.0
+        151.3,
+        148.5,
+        143.0
       ],
-      "outlook_short": "5/7 Q1 어닝 이벤트 최대 변수, EPS 컨센서스($1.32) 충족 여부에 따라 ±5~8% 변동성 경계, 어닝 확인 전 관망 권장",
-      "outlook_mid": "어닝 통과 후 $161~$165 매물대 돌파 여부가 관건, 성공 시 $168~$170 저항 재도전, 실패 시 $153~$158 박스권 지속",
-      "outlook_long": "AI 전력수요 테마(Meta/Amazon PPA), Cogentrix 인수, 투자등급 업그레이드로 구조적 상승 내러티브 유효, 월가 컨센서스 TP $234(+46% 업사이드)",
+      "outlook_short": "5/7 Q1 어닝 발표 전후 변동성 확대, 실적 확인 전 신규 진입 자제 권고",
+      "outlook_mid": "실적 양호 시 SMA50 돌파 후 $168~$170 저항 재도전, 미스 시 $153 지지 재검증",
+      "outlook_long": "AI 전력 수요 + Cogentrix/Meta PPA 등 구조적 성장 드라이버 유효, 목표가 $226~$234 중장기 상승 여력 잔존",
       "key_reasons": [
-        "5/7 Q1 2026 어닝 직전 이벤트 리스크 최고조 — 직전 분기 EPS 컨센서스 대폭 하회 전례 있어 관망이 최선",
-        "공매도 잔고 4월 한 달 간 +20.4% 급증(11.24M주, SI 3.4%), 어닝 전 베어리쉬 포지션 확대 확인",
-        "SMA20($159.24)/SMA50($159.65)/현재가($160.38) 수렴 + 50% 피보나치 레벨 일치로 방향성 결정 중 — 어닝이 촉매",
-        "장기 AI 전력테마(Meta 20년 PPA, Amazon 1,200MW 계약), Fitch/S&P 투자등급 업그레이드, 2026 EBITDA 가이던스 $68~$76억으로 펀더멘털 개선 추세",
-        "SMA200($177.22) 하방 위치 + 52주 고점($219.21) 대비 -26.8% 하락 상태로 중기 하락 추세 미회복, 단계적 분할 매집(staged accumulation) 전략 권장"
+        "Q1 2026 어닝 발표(5/7) 임박, Earnings ESP -23.6%로 미스 리스크 존재 → 어닝 전 신규 진입 비선호",
+        "공매도 잔고 4월 한 달간 20.4% 급증(11.2M주, 3.4% of float) → 단기 하방 헤지 압력 증가",
+        "SMA20($159.24)/SMA50($159.65) 수렴 + 현재가 매물대 상단 위치 → 방향성 결정 미완, 중립 구간",
+        "Cogentrix 5,500MW 인수 + Meta 20년 PPA + Fitch 투자등급 상향 등 장기 테마 견고",
+        "PCR 1.41(5/8만기), $160 풋 최대 OI → 단기 하방 헤지 집중, 어닝 이후 포지션 해소 시 방향성 급변 가능"
       ],
       "summary_parse_status": "ok",
       "entry_style": "1-4 week pullback / staged accumulation",
@@ -201,8 +209,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -211,7 +219,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -221,7 +229,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -232,25 +240,24 @@
       "investment_profile": "high_vol_swing",
       "investment_horizon": "1-8 weeks within a longer theme",
       "entry_suitability": "중립",
-      "direction": "neutral",
+      "direction": "bullish",
       "entry_prices": [
-        67.5,
-        64.5
+        67.85,
+        65.4,
+        60.35
       ],
       "stop_prices": [
         64.5,
-        62.5,
-        58.79
+        59.5,
+        56.0
       ],
-      "outlook_short": "5/12 어닝 앞두고 $65~$72 박스권 등락, 임원 매도·공매도 증가로 상방 제한",
-      "outlook_mid": "어닝 후 가이던스 긍정 시 $80 재도전, 실망 시 $58~$60 지지 테스트",
-      "outlook_long": "AI 인프라 전력 수요 테마 유효하나 프리 레버뉴·규제 리스크로 $90 이상은 실질 진전 필요",
+      "outlook_short": "5/12 어닝 앞두고 $65~$72 박스권 소화, 임원 인사이더 매도 압박으로 단기 상승 탄력 제한적",
+      "outlook_mid": "NVIDIA·Meta·LANL 파트너십이 지지력 형성, 어닝 이후 $75~$80 저항 돌파 여부로 방향성 결정",
+      "outlook_long": "AI 전력 수요 + 트럼프 원전 정책 수혜 지속, NRC 승인 및 실질 매출 발생 전까지 $100 이상은 강한 촉매 필요",
       "key_reasons": [
-        "4월 ~58% 급등 이후 고점 $81.5에서 조정 중, 38.2% 피보나치($68.47)에서 지지 테스트 중",
-        "5/12 어닝 이벤트 + CEO 포함 임원 $5,090만 규모 주식 매도로 단기 상방 압력 제한",
-        "공매도 잔고 18.84%(2,861만주)로 급증, 어닝 서프라이즈 시 숏 스퀴즈 촉매 가능",
-        "NVIDIA·LANL Genesis Mission 협력, 14GW 파이프라인 등 AI-핵 테마 내러티브 강건",
-        "거래량 20일 평균 대비 0.53배로 급감, 방향성 확정 전까지 관망이 최선"
+        "피보나치 38.2% 지지($68.47)와 현재가 일치, 기술적 분기점에서 반등 or 추가 조정 가능성 공존",
+        "5/12 Q1 어닝 이벤트 + 임원 Caroline Cochran의 $2,175만 인사이더 매도 파일링으로 단기 하방 압력",
+        "NVIDIA·LANL 파트너십, Meta 1.2GW 계약 등 강력한 AI+핵에너지 테마 스토리로 중장기 bull case 유효"
       ],
       "summary_parse_status": "ok",
       "entry_style": "short-term momentum continuation or sharp pullback",
@@ -276,8 +283,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -286,7 +293,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -296,7 +303,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -310,15 +317,15 @@
       "direction": "neutral",
       "entry_prices": [],
       "stop_prices": [],
-      "outlook_short": "5/7 Q1 실적 발표 결과에 따라 ±15% 이상 급변 가능, 컨센서스 미스 시 $10 테스트 위험",
-      "outlook_mid": "Fluor 잔여 지분 매도 완료 및 소송 경과에 따라 $10.92~$12.68 매물대 내 횡보 또는 방향 결정",
-      "outlook_long": "TVA PPA 체결 및 ENTRA1 소송 해소 시 $17~$19 반등 가능, 부정적 시 $8.85 재테스트",
+      "outlook_short": "5/7 어닝 발표 이벤트 리스크 극대 구간, 예상 EPS -$0.11 및 매출 급감 우려로 단기 하락 압력 우세",
+      "outlook_mid": "어닝 소화 후 $10.92~$12.68 최대 매물대 내 횡보 예상, $12.68 돌파 여부가 반등 전환의 핵심 조건",
+      "outlook_long": "TVA 6GW 프로그램, RoPower(2030~33), ENTRA1 소송 진행 결과가 장기 방향성 결정, AI 전력 테마 반등 가능하나 실매출까지 수년 소요",
       "key_reasons": [
-        "5/7 Q1 실적 발표 이벤트 리스크 — 직전 분기 EPS -$0.80 대폭 미스 선례 및 매출 급감 예상",
-        "공매도 비율 38.92%(플로트 대비, 2026-04-15 기준) 극단적 숏 포지션 — 양방향 변동성 확대 요인",
-        "Fluor 잔여 지분(~1,350만 주) 추가 매도 압력 지속 + ENTRA1 증권 사기 집단소송 오버행",
-        "현재가 최대 매물대($10.92~$12.68) 내 위치, RSI 중립, 거래량 0.5x 위축 — 방향성 부재",
-        "핵규제위원회(NRC) 유일 승인 SMR 보유 + AI·데이터센터 테마 구조적 성장 잠재력은 중장기 강세 근거"
+        "Q1 2026 어닝(5/7) 직전 — 매출 95% 급감 기록한 Q4 2025의 연장으로 어닝 실망 가능성 높음, 이벤트 리스크 최대",
+        "공매도 비율 29~39% of Float(2026-04-15 기준) — 극도로 높은 숏 오버행이 하락 가속 리스크이나 동시에 스퀴즈 잠재력",
+        "전략적 대주주 Fluor 완전 이탈($2.43B 청산) + ENTRA1 증권사기 집단소송 + Citi Sell($9 TP) 복합 악재 오버행",
+        "현재가 $11.87은 최대 매물대($10.92~$12.68, 8.27억 거래량) 중심부 위치, $12.68 저항 돌파 실패 반복 중",
+        "거래량 20일 평균의 0.5배 수준으로 모멘텀 약화, MACD 미약 양전환이나 Stochastic K<D 하락 교차로 단기 매도 압력 시사"
       ],
       "summary_parse_status": "ok",
       "entry_style": "short-term momentum continuation or sharp pullback",
@@ -344,8 +351,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -354,7 +361,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -364,7 +371,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -377,22 +384,24 @@
       "entry_suitability": "중립",
       "direction": "bullish",
       "entry_prices": [
-        53.54,
-        50.41,
-        47.4
+        53.15,
+        49.97,
+        46.5
       ],
       "stop_prices": [
         51.98,
         49.07,
-        45.9
+        45.51
       ],
-      "outlook_short": "5/7 Q3 어닝 바이너리 이벤트 + $55.72~56.13 저항 직면, 방향성 이후 확인 후 진입 권장",
-      "outlook_mid": "Mirantis 인수 및 Sweetwater 1 가동 소화 시 $60~$65 재도전, 주식 희석 리스크가 상단 제약 요인",
-      "outlook_long": "AI 인프라 피벗 완성, Microsoft 계약 실적 가시화 시 애널리스트 평균 목표가 $70~$72 달성 가능",
+      "outlook_short": "5/7 어닝 발표가 분기점: 서프라이즈 시 $60~63 테스트, 미스 시 $47~50 리트레이스",
+      "outlook_mid": "어닝 무사 통과 + Mirantis 딜 완료 기대 시 $60~65 목표, 딜 희석 우려는 오버행 변수",
+      "outlook_long": "150,000 GPU 확장 + $2.3B ARR 계약 실행력 검증 시 애널 평균 목표가 $70~72 권역 도달 가능",
       "key_reasons": [
-        "Mirantis $625M 전액주식 인수 발표로 단기 급등(+10.6%), AI 클라우드 스택 수직 통합 강화",
-        "5/7 Q3 FY26 어닝 임박 — 매출 +48% YoY 기대치 vs. 희석·통합 리스크 공존하는 바이너리 이벤트",
-        "공매도 비율 17.8%(~59M주)로 어닝 서프라이즈 시 Short Squeeze 가속 가능성 존재"
+        "5/5 Mirantis $625M 전액 주식 인수 발표로 AI 클라우드 소프트웨어 스택 강화, 주가 +10.6% 급등",
+        "5/7 Q3 FY26 어닝 발표 임박: 최근 4분기 연속 미스 이력으로 어닝 리스크 높고, 진입 전 결과 확인 필수",
+        "Short Interest ~17.8% of Float + 5일 +27.7% 급등 → 부분 숏커버링 진행 중, 어닝 서프라이즈 시 $60+ 숏스퀴즈 가능",
+        "5/15 만기 옵션 PCR 0.53으로 콜 OI 압도적($60 콜 최대): 어닝 후 상승 기대 포지셔닝 집중",
+        "SMA 완전 정배열(현재가>SMA20>SMA50≈SMA200), MACD 골든크로스 유지 → 중기 기술적 구조 강세"
       ],
       "summary_parse_status": "ok",
       "entry_style": "short-term momentum continuation or sharp pullback",
@@ -418,8 +427,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -428,7 +437,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -438,7 +447,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -451,24 +460,24 @@
       "entry_suitability": "관망",
       "direction": "bullish",
       "entry_prices": [
-        21.6,
-        20.5,
-        19.9
+        21.1,
+        19.93,
+        19.88
       ],
       "stop_prices": [
         20.5,
-        19.75,
-        19.2
+        19.25,
+        18.37
       ],
-      "outlook_short": "어닝 당일(5/6) 불확실성 최고조, RSI 과매수 + 고점 저항 병목으로 조정 후 재진입 대기",
-      "outlook_mid": "Pecos 1.5GW 확장·CoreWeave 계약 모멘텀 유효, $22.43 저항 돌파 시 $24~26 목표",
-      "outlook_long": "Bitcoin→AI HDC 피벗 성공 시 $26.55 애널리스트 목표 달성 가능, 전환 비용·단일 고객 리스크는 하방 압력",
+      "outlook_short": "Q1 어닝(5/6 장 후) 결과가 방향 결정: 호조 시 $23.63 저항 돌파 시도, 실망 시 $19.88~$20 되돌림",
+      "outlook_mid": "Pecos 1.5GW 확장 + $3.3B 파이낸싱 모멘텀 유효, 애널리스트 목표가 $24.56~$26.55로 상승 여력 존재",
+      "outlook_long": "AI 인프라 전환 실행력 + Bitcoin 마이닝 완전 탈피 성공 여부가 관건, 고레버리지·음FCF는 구조적 리스크",
       "key_reasons": [
-        "RSI 70.74 과매수 + 52주 고점($22.43/$23.63) 이중 저항 → 즉시 진입 비추천",
-        "5/6 Q1 어닝 발표 이벤트 리스크 + 5일간 +13.4% 선반영 → 관망 후 어닝 반응 확인 필수",
-        "AI 인프라 피벗(Pecos 1.5GW) + CoreWeave $10B 계약 + $3.3B 파이낸싱 → 구조적 모멘텀 중장기 유효",
-        "공매도 잔고 18.04%(55.46M주) → 어닝 서프라이즈 시 쇼트 스퀴즈 연료 존재",
-        "피보 38.2%($20.46) + 매물대 상단($20.47) 수렴 구간이 최적 재진입 지지대"
+        "Q1 2026 어닝 발표(5/6 장 후) 이벤트 리스크로 어닝 전 추격 매수 비권장, 결과 확인 후 진입",
+        "RSI 70.74 과매수 + 52주/120일 최고가($22.43~$23.63) 저항 직하 — 단기 상단 압박",
+        "Pecos 1.5GW 확장 + $3.3B 시니어 노트 조달 + AI 인프라 테마 강한 중기 모멘텀",
+        "공매도 잔고 18.04% — 어닝 서프라이즈 시 Short Squeeze 복합 상승 가능성",
+        "SMA 완벽 정배열(가격>SMA20>SMA50>SMA200) + MACD 양전환 유지 — 중기 추세 건강"
       ],
       "summary_parse_status": "ok",
       "entry_style": "short-term momentum continuation or sharp pullback",
@@ -494,8 +503,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -504,7 +513,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -514,7 +523,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -528,13 +537,13 @@
       "direction": "bearish",
       "entry_prices": [],
       "stop_prices": [],
-      "outlook_short": "52주 신저 터치 후 데드캣 반등 가능하나 $169.62 저항 돌파 없으면 추가 하락 위험 지속",
-      "outlook_mid": "$189.31 최대 매물대 저항 돌파 실패 시 $154~$163 재방문 가능, 실적 가이던스 추가 하향 여부가 핵심 변수",
-      "outlook_long": "펜타곤 드론 예산 증가·LASSO 등 카탈리스트 존재하나 SCAR 계약 해지 후 펀더멘털 회복까지 시간 필요, 기술적 추세 반전 확인 후 재평가 필요",
+      "outlook_short": "5일 연속 하락 + 120일 신저점, 기술적 반등 가능하나 $170 저항 돌파 전까지 추세 전환 미확인",
+      "outlook_mid": "SCAR 계약 손실·가이던스 하향 부담 지속, BofA 컨퍼런스(5/13) 및 신규 계약 수주가 반등 트리거 될 수 있으나 $189~$192 매물대 돌파가 관건",
+      "outlook_long": "펜타곤 드론 예산 $74B+ 배정·Switchblade 시리즈 수주 확대로 중장기 성장 스토리 유효, 단 실적 가시성 회복 및 백로그 확대 확인 시 재평가 가능",
       "key_reasons": [
-        "SMA20/50/200 완전 하방 이탈 + 데드크로스 + RSI 34.78 + MACD 음수 확대: 기술적 하락 추세 미완",
-        "최근 4분기 중 3분기 실적 하회 + 60일간 이익 추정치 23.5% 하향 + SCAR $1.7B 계약 해지로 펀더멘털 훼손",
-        "인사이더 전원 매도(매수 없음) + SI 12% Float + 최대 매물대($189.31~$211.92) 강한 저항: 수급 구조 비우호적"
+        "SMA20/50/200 전체 하방 배열 + MACD 음수 확대 + Stochastic 4.72로 기술적 강세 신호 전무",
+        "SCAR 계약($1.7B) 종료로 $151.3M 영업권 손상 + FY2026 EPS 가이던스 16% 하향, 펀더멘털 불확실성 미해소",
+        "공매도 비율 SI 12.09%(4.62M주) 증가 추세 + 인사이더 순매도 지속 + $189~$212 초대형 매물대 저항"
       ],
       "summary_parse_status": "ok",
       "entry_style": "1-3 week pullback or constructive momentum continuation",
@@ -560,8 +569,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -570,7 +579,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -580,7 +589,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
@@ -590,37 +599,37 @@
       "current_price": 9.33,
       "investment_profile": "high_vol_swing",
       "investment_horizon": "1-8 weeks within a longer theme",
-      "entry_suitability": "중립",
+      "entry_suitability": "관망",
       "direction": "neutral",
-      "entry_prices": [
-        9.27,
-        9.2,
-        8.73
-      ],
-      "stop_prices": [
-        8.91,
-        8.56,
-        8.06
-      ],
-      "outlook_short": "Q1 어닝스(5/14) 직전 $9.20~$9.76 박스권 등락, 역사적 -3.77% 평균 어닝스 반응 주의",
-      "outlook_mid": "어닝스 가이던스($38~40M) 충족 확인 시 $10.56~$11.61 구간 재돌파 시도, Mistral+백로그 $457M이 촉매",
-      "outlook_long": "2026 $375M+ 가이던스 및 defense_ai 테마 유효하나, M&A 통합·워런트 희석·34% 공매도 압력 변수 상존",
+      "entry_prices": [],
+      "stop_prices": [],
+      "outlook_short": "5/14 어닝 전 $9.20~$9.76 박스 등락, 피보나치 78.6% 지지($9.35) 이탈 여부가 핵심 분기점",
+      "outlook_mid": "Q1 어닝 서프라이즈 + 공매도 숏커버링 시 $11~$12 재탈환 가능, 미스 시 $8.73 재테스트",
+      "outlook_long": "defense_ai 테마(백로그 $457M, 가이던스 $375M+) 유효하나 희석·적자·통합 리스크로 $18~19 컨센서스 도달은 중장기 과제",
       "key_reasons": [
-        "현재가 피보나치 78.6% 되돌림($9.35) 위치, SMA20/50 하방 이탈로 단기 기술적 약세 구조",
-        "공매도 비율 34.07%(164.35M주)로 극도로 높아 숏 스퀴즈 잠재력 보유하나 DTC 2일 미만으로 청산 지속성 제한",
-        "5/14 Q1 어닝스(가이던스 $38~40M)가 단기 최대 카탈리스트 — Mistral 합병·$457M 백로그·FIFA 계약 등 호재 누적"
+        "SMA20($10.05)·SMA50($10.04) 동시 하향 이탈 + MACD 베어리시 크로스 진행 중",
+        "공매도 비율 ~34%(162M주), 인사이더 매도 일관, 수권주식 확대(8억→12억) 희석 오버행",
+        "5/14 Q1 어닝 이벤트 리스크: 가이던스 $38~40M 충족 여부가 방향성 결정, 어닝 전 신규 진입 비권장"
       ],
       "summary_parse_status": "ok",
       "entry_style": "short-term momentum continuation or sharp pullback",
       "risk_style": "technical invalidation with tighter ATR-defined risk",
       "polymarket": {
-        "available": false,
+        "available": true,
         "ticker": "ONDS",
-        "reason": "No relevant prediction market found"
+        "question": "Will Nickolas Bonds be the Democratic nominee for Senate in Idaho?",
+        "probability_yes_pct": 4.9,
+        "probability_no_pct": 95.1,
+        "question_direction": "unknown",
+        "polymarket_direction": "unknown",
+        "liquidity_usd": 13055.0,
+        "end_date": "2026-05-19T00:00:00Z",
+        "market_id": "1991726",
+        "url": "https://polymarket.com/event/will-nickolas-bonds-be-the-democratic-nominee-for-senate-in-idaho"
       },
       "polymarket_comparison": {
-        "match": "N/A",
-        "message": "Polymarket에 관련 시장 없음",
+        "match": "중립",
+        "message": "Claude(neutral) vs Polymarket(unknown, 4.9%) — 한쪽 불확실, 추가 확인 필요",
         "confidence_boost": 0
       },
       "polymarket_claude_review": {
@@ -634,8 +643,8 @@
       "portfolio_context": {
         "total_tickers": 9,
         "direction_counts": {
-          "bullish": 5,
-          "neutral": 3,
+          "bullish": 6,
+          "neutral": 2,
           "bearish": 1
         },
         "warnings": [
@@ -644,7 +653,7 @@
             "severity": "medium",
             "theme": "ai_infrastructure",
             "direction": "bullish",
-            "count": 5,
+            "count": 6,
             "tickers": [
               "CORZ",
               "IREN",
@@ -654,7 +663,7 @@
               "SMR",
               "VST"
             ],
-            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+            "message": "ai_infrastructure: 6/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
           }
         ]
       }
