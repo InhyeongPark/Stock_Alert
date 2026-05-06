@@ -48,7 +48,8 @@ Stock_Alert/
 │
 ├── stock_report.py          # 메인 오케스트레이터 (~170줄)
 ├── config.py                # 모델, 설정, feature flags
-├── watchlist.txt            # 관심 종목 (한 줄에 하나)
+├── watchlist.txt            # 관심 종목 + 선택적 profile/theme 메타데이터
+├── watchlist_parser.py      # ticker/profile/theme 파서
 │
 ├── ── 데이터 수집 ──
 ├── data_fetcher.py          # yfinance 가격/지표/옵션 수집
@@ -98,6 +99,14 @@ Stock_Alert/
 watchlist.txt
     │
     ▼
+┌──────────────────┐
+│ watchlist_parser │
+│ - ticker         │
+│ - profile        │
+│ - themes         │
+└────────┬─────────┘
+         │
+         ▼
 ┌──────────────────┐    ┌──────────────────┐
 │  data_fetcher.py │    │   yfinance API   │
 │  - 가격/지표     │◄───│   (무료)         │
@@ -188,7 +197,8 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **실행:** `python backtester.py` (데이터 쌓인 후)
 - **지표:** Win rate, Profit Factor, R-Multiple, MFE, MDD
 - **의미:** `bullish`만 롱 트레이드로 평가하고, `bearish`는 숏이 아니라 롱 회피/위험 경고로 평가
-- **타겟:** bullish live target은 고정 3%가 아니라 저장된 stop 거리 기준 `entry + 2R`
+- **프로파일:** 저장 summary의 `investment_profile` 또는 현재 `watchlist.txt` metadata로 holding window와 target R을 결정
+- **타겟:** bullish live target은 고정 3%가 아니라 `entry + (entry - stop) * target_r_multiple`
 - **벤치마크:** 같은 평가 창의 SPY/QQQ 수익률을 붙여 long excess return과 bearish underperformance를 확인
 - **리스크:** 롱 평가에는 stop까지의 위험률, target 수익률, target R-multiple을 저장
 - **무효 리스크:** stop이 없거나 entry 이상이면 `invalid_risk`/`no_risk_defined`로 분리하고 long 성과 지표에서 제외
@@ -199,8 +209,8 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **방법:** 규칙을 고정하고 과거 데이터를 walk-forward
 - **실행:** `python proxy_backtest.py MSFT --years 2`
 - **주의:** 규칙을 결과 보고 조정하면 overfitting. FIXED RULES 유지
-- **쿨다운:** 한 추세 구간이 매일 독립 신호로 중복 집계되지 않도록 `HOLDING_DAYS`만큼 cooldown 적용
-- **프로파일:** `core_theme`, `growth_theme`, `high_vol_swing` 등 class-level profile로 holding window와 target R을 결정
+- **쿨다운:** 한 추세 구간이 매일 독립 신호로 중복 집계되지 않도록 profile holding window만큼 cooldown 적용
+- **프로파일:** `watchlist.txt`의 종목별 metadata와 `investment_profiles.py`의 class-level profile 정의로 holding window와 target R을 결정
 - **타겟:** bullish proxy target은 고정 3%가 아니라 `entry + (entry - stop) * target_r_multiple`
 - **벤치마크/리스크:** SPY/QQQ excess/underperformance와 ATR 기반 risk structure를 함께 저장
 - **회피 평가:** bearish avoidance는 절대수익률 기준 성공률과 SPY/QQQ 대비 underperformance 기준 성공률을 함께 제공

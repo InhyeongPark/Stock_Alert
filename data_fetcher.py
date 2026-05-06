@@ -4,27 +4,27 @@ Provides pre-computed compressed signals so Claude interprets rather than calcul
 """
 
 import logging
+from pathlib import Path
 
 import yfinance as yf
 import pandas_ta as ta
+
+from watchlist_parser import load_watchlist_tickers
 
 log = logging.getLogger(__name__)
 
 
 def load_watchlist(filepath: str) -> list[str]:
-    """Read tickers from watchlist.txt (one per line, # for comments)."""
-    watchlist = []
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.split("#")[0].strip()
-                if line:
-                    watchlist.append(line.upper())
+    """Read tickers from watchlist.txt, ignoring optional profile metadata."""
+    watchlist = load_watchlist_tickers(filepath)
+    if watchlist:
         log.info(f"Watchlist loaded: {len(watchlist)} tickers")
         return watchlist
-    except FileNotFoundError:
+
+    if not Path(filepath).exists():
         log.error(f"Cannot find {filepath}!")
-        return []
+
+    return []
 
 
 def fetch_stock_data(ticker: str) -> dict | None:

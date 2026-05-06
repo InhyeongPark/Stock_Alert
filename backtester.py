@@ -33,14 +33,15 @@ from pathlib import Path
 import yfinance as yf
 
 from config import TZ
+from investment_profiles import get_profile, get_ticker_profile
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
 SUMMARY_DIR = "report_summaries"
 RESULTS_DIR = "backtest_results"
-HOLDING_DAYS = 5  # Evaluate performance over N trading days after signal
-TARGET_R_MULTIPLE = 2.0  # Bullish target = entry + 2R, where R is entry-stop risk
+DEFAULT_HOLDING_DAYS = 5  # Fallback evaluation window when profile metadata is missing
+DEFAULT_TARGET_R_MULTIPLE = 2.0  # Fallback bullish target = entry + 2R
 AMBIGUOUS_EXIT_POLICY = "conservative_stop"
 LONG_TRADE = "long_trade"
 LONG_AVOIDANCE = "long_avoidance"
@@ -101,6 +102,9 @@ def _evaluate_ticker(
     direction = summary.get("direction", "unknown").lower()
     entries = summary.get("entry_prices", [])
     stops = summary.get("stop_prices", [])
+    profile = _profile_for_summary(ticker, summary)
+    holding_days = profile.get("proxy_holding_days", DEFAULT_HOLDING_DAYS)
+    target_r_multiple = profile.get("target_r_multiple", DEFAULT_TARGET_R_MULTIPLE)
 
     if direction not in ("bullish", "bearish"):
         return []
@@ -111,13 +115,13 @@ def _evaluate_ticker(
     # Fetch actual prices after the report date
     try:
         start = datetime.strptime(report_date, "%Y-%m-%d") + timedelta(days=1)
-        end = start + timedelta(days=HOLDING_DAYS + 5)  # extra days for weekends
+        end = start + timedelta(days=holding_days + 5)  # extra days for weekends
         df = yf.Ticker(ticker).history(start=start, end=end)
 
         if df.empty or len(df) < 1:
             return []
 
-        actual_prices = df.head(HOLDING_DAYS)  # first N trading days
+        actual_prices = df.head(holding_days)  # first N trading days
     except Exception as e:
         log.warning(f"⚠️ {ticker}: price fetch failed for backtest: {e}")
         return []
@@ -139,6 +143,8 @@ def _evaluate_ticker(
         avoidance = _evaluate_long_avoidance(
             ticker=ticker,
             signal_date=report_date,
+            profile=profile,
+            holding_days=holding_days,
             reference_price=reference_price,
             price_data=actual_prices,
             benchmark_returns=benchmark_returns,
@@ -160,6 +166,9 @@ def _evaluate_ticker(
                 entry_price=entry_price,
                 stop_price=stop_price,
                 reason="stop_not_below_entry",
+                profile=profile,
+                holding_days=holding_days,
+                target_r_multiple=target_r_multiple,
                 benchmark_returns=benchmark_returns,
             ))
             continue
@@ -171,6 +180,9 @@ def _evaluate_ticker(
                 entry_price=entry_price,
                 stop_price=stop_price,
                 reason="missing_stop",
+                profile=profile,
+                holding_days=holding_days,
+                target_r_multiple=target_r_multiple,
                 benchmark_returns=benchmark_returns,
             ))
             continue
@@ -183,12 +195,22 @@ def _evaluate_ticker(
             entry_price=entry_price,
             stop_price=stop_price,
             price_data=actual_prices,
+            profile=profile,
+            holding_days=holding_days,
+            target_r_multiple=target_r_multiple,
             benchmark_returns=benchmark_returns,
         )
         if trade:
             trades.append(trade)
 
     return trades
+
+
+def _profile_for_summary(ticker: str, summary: dict) -> dict:
+    profile_name = summary.get("investment_profile")
+    if profile_name:
+        return get_profile(profile_name, ticker=ticker)
+    return get_ticker_profile(ticker)
 
 
 def _simulate_trade(
@@ -199,6 +221,9 @@ def _simulate_trade(
     entry_price: float,
     stop_price: float | None,
     price_data,
+    profile: dict,
+    holding_days: int,
+    target_r_multiple: float,
     benchmark_returns: dict[str, float] | None = None,
 ) -> dict | None:
     """
@@ -213,7 +238,7 @@ def _simulate_trade(
             entry_date = date
             break
 
-    target_price = _target_from_stop(entry_price, stop_price)
+    target_price = _target_from_stop(entry_price, stop_price, target_r_multiple)
     risk = _risk_structure(entry_price, stop_price, target_price)
 
     if not entry_triggered:
@@ -222,6 +247,9 @@ def _simulate_trade(
             "report_date": report_date,
             "entry_level": entry_level,
             "evaluation_type": LONG_TRADE,
+            "investment_profile": profile["profile_name"],
+            "holding_days": holding_days,
+            "target_r_multiple": target_r_multiple,
             "direction": direction,
             "entry_price": entry_price,
             "stop_price": stop_price,
@@ -288,6 +316,9 @@ def _simulate_trade(
         "report_date": report_date,
         "entry_level": entry_level,
         "evaluation_type": LONG_TRADE,
+        "investment_profile": profile["profile_name"],
+        "holding_days": holding_days,
+        "target_r_multiple": target_r_multiple,
         "direction": direction,
         "entry_price": entry_price,
         "stop_price": stop_price,
@@ -309,6 +340,8 @@ def _simulate_trade(
 def _evaluate_long_avoidance(
     ticker: str,
     signal_date: str,
+    profile: dict,
+    holding_days: int,
     reference_price: float,
     price_data,
     benchmark_returns: dict[str, float] | None = None,
@@ -345,6 +378,9 @@ def _evaluate_long_avoidance(
         "ticker": ticker,
         "report_date": signal_date,
         "evaluation_type": LONG_AVOIDANCE,
+        "investment_profile": profile["profile_name"],
+        "holding_days": holding_days,
+        "target_r_multiple": profile.get("target_r_multiple"),
         "direction": "bearish",
         "action": "avoid_long",
         "reference_price": _round_or_none(reference_price),
@@ -366,6 +402,9 @@ def _invalid_risk_record(
     entry_price: float,
     stop_price: float | None,
     reason: str,
+    profile: dict,
+    holding_days: int,
+    target_r_multiple: float,
     benchmark_returns: dict[str, float] | None = None,
 ) -> dict:
     return {
@@ -373,6 +412,9 @@ def _invalid_risk_record(
         "report_date": report_date,
         "entry_level": entry_level,
         "evaluation_type": INVALID_RISK,
+        "investment_profile": profile["profile_name"],
+        "holding_days": holding_days,
+        "target_r_multiple": target_r_multiple,
         "direction": "bullish",
         "entry_price": _round_or_none(entry_price),
         "stop_price": _round_or_none(stop_price),
@@ -385,7 +427,11 @@ def _invalid_risk_record(
     }
 
 
-def _target_from_stop(entry_price: float, stop_price: float | None) -> float | None:
+def _target_from_stop(
+    entry_price: float,
+    stop_price: float | None,
+    target_r_multiple: float = DEFAULT_TARGET_R_MULTIPLE,
+) -> float | None:
     if stop_price is None:
         return None
 
@@ -393,7 +439,7 @@ def _target_from_stop(entry_price: float, stop_price: float | None) -> float | N
     if risk <= 0:
         return None
 
-    return entry_price + (risk * TARGET_R_MULTIPLE)
+    return entry_price + (risk * target_r_multiple)
 
 
 def _risk_structure(
@@ -581,7 +627,9 @@ def _compute_metrics(records: list[dict]) -> dict:
         "invalid_risk_signals": len(invalid_risk),
         "invalid_risk_count": len(invalid_risk),
         "invalid_risk_reasons": _count_by(invalid_risk, "invalid_risk_reason"),
-        "target_r_multiple": TARGET_R_MULTIPLE,
+        "profile_counts": _count_by(records, "investment_profile"),
+        "holding_days_counts": _count_by(records, "holding_days"),
+        "target_r_multiple_counts": _count_by(records, "target_r_multiple"),
     }
 
     if long_trades:

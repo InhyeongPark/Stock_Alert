@@ -1,4 +1,6 @@
-IREN
-ORCL
-ONDS
-SMR
+# ticker  profile          themes
+MSFT      core_theme       ai_infrastructure,software_platform
+VST       core_theme       ai_infrastructure,energy
+OKLO      high_vol_swing   ai_infrastructure,nuclear
+CORZ      high_vol_swing   ai_infrastructure,compute
+AVAV      growth_theme     defense_ai

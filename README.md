@@ -20,7 +20,7 @@ GitHub Actions
 stock_report.py
     |
     +-- market_calendar.py       skip non-trading days
-    +-- watchlist.txt            load tickers
+    +-- watchlist.txt            load tickers + optional profile metadata
     +-- data_fetcher.py          yfinance price, indicators, options data
     +-- analyzer.py/prompts.py   Claude detailed report + JSON block
     +-- email_builder.py         full HTML email
@@ -61,7 +61,8 @@ That means the saved JSON summaries remain in the repository and can later be us
 Stock_Alert/
 ├── stock_report.py              # Main daily orchestrator
 ├── config.py                    # Model, timezone, feature flags
-├── watchlist.txt                # One ticker per line
+├── watchlist.txt                # Tickers with optional profile/theme metadata
+├── watchlist_parser.py          # Backward-compatible watchlist parser
 ├── data_fetcher.py              # yfinance data and indicators
 ├── market_calendar.py           # NYSE open/closed check
 ├── analyzer.py                  # Claude API call
@@ -146,10 +147,27 @@ If repository-level workflow permissions are restricted, set Actions to allow re
 Edit `watchlist.txt`:
 
 ```text
-MSFT
-NVDA
-TSLA
+# ticker  profile          themes
+MSFT      core_theme       ai_infrastructure,software_platform
+VST       core_theme       ai_infrastructure,energy
+OKLO      high_vol_swing   ai_infrastructure,nuclear
+CORZ      high_vol_swing   ai_infrastructure,compute
+AVAV      growth_theme     defense_ai
 ```
+
+The first column is always the ticker. The second column is optional investment profile, and the third column is optional comma-separated theme tags. Simple one-ticker rows still work:
+
+```text
+IREN
+```
+
+If metadata is omitted, the system falls back to `high_vol_swing` and no theme tags. Supported profile names are defined in `investment_profiles.py`; aliases such as `high_vol` map to `high_vol_swing`.
+
+Profile metadata affects three places:
+
+- Proxy backtest holding window, cooldown, stop ATR multiple, and target R multiple.
+- Live backtest holding window and target R multiple for saved summaries.
+- Claude prompt context and portfolio concentration warnings.
 
 ### 4. Local Environment
 
@@ -222,10 +240,10 @@ Signal semantics:
 - `bearish` is evaluated as long avoidance / risk warning, not as a short trade.
 - `neutral`, missing entries, and parse failures are skipped for executable trade metrics.
 
-Bullish live targets are no longer a fixed percent. The target is derived from the saved stop distance:
+Bullish live targets are no longer a fixed percent. The target is derived from the saved stop distance and ticker profile:
 
 ```text
-target = entry + 2R
+target = entry + (entry - stop) * target_r_multiple
 R = entry - stop
 ```
 
@@ -264,7 +282,7 @@ Proxy backtest cleanup:
 - Repeated signals now use a cooldown equal to the profile holding window, so one trend stretch is not counted as a fresh trade every day.
 - `bullish` signals are evaluated as long trades with ATR-based stops and targets.
 - `bearish` signals are evaluated as long avoidance / risk warning, not short trades.
-- Proxy uses profile-based horizons from `investment_profiles.py`: core theme names use longer windows, while high-volatility swing names use shorter windows.
+- Proxy uses profile-based horizons from `watchlist.txt` metadata and `investment_profiles.py` definitions: core theme names use longer windows, while high-volatility swing names use shorter windows.
 - The proxy target is now R-multiple based: `target = entry + (entry - stop) * target_r_multiple`.
 - Proxy long trades also store `atr_14` and risk fields, including `atr_to_stop`.
 - Proxy metrics include average long excess return versus SPY/QQQ and bearish underperformance rates versus SPY/QQQ when benchmark data is available.
@@ -323,7 +341,7 @@ The total cost includes both, while `tickers_analyzed` counts only primary stock
 Syntax verification used for this project:
 
 ```powershell
-uv run --python 3.12 --with-requirements requirements.txt python -m py_compile stock_report.py backtester.py summary_builder.py discord_notifier.py polymarket_client.py proxy_backtest.py
+uv run --python 3.12 --with-requirements requirements.txt python -m py_compile stock_report.py backtester.py data_fetcher.py summary_builder.py discord_notifier.py polymarket_client.py proxy_backtest.py watchlist_parser.py investment_profiles.py portfolio_monitor.py prompts.py
 ```
 
 Targeted checks should cover:
@@ -335,7 +353,8 @@ Targeted checks should cover:
 - proxy cooldown and ATR target parameters are present in saved metrics
 - live/proxy benchmark metrics calculate SPY/QQQ comparison fields without changing trade outcomes
 - risk structure fields are present on long-trade evaluations
-- proxy profiles are applied before looking at results and are stored in saved backtest JSON
+- watchlist metadata is parsed correctly for both simple ticker rows and ticker/profile/theme rows
+- proxy/live profiles are applied before looking at results and are stored in saved backtest JSON
 - Discord field values are truncated to avoid webhook rejection from Discord payload limits
 
 ---
@@ -350,4 +369,4 @@ Targeted checks should cover:
 - Backtests separate executable long-trade metrics from bearish long-avoidance metrics.
 - Proxy backtest uses fixed rules with cooldown and ATR targets; changing those after seeing results creates overfitting risk.
 - Live backtest treats missing/invalid stops as recommendation-quality errors, not unmanaged 5-day buy-and-hold trades.
-- Investment profiles are class-level assumptions, not ticker-by-ticker backtest tuning knobs.
+- Investment profiles are class-level assumptions, not ticker-by-ticker backtest tuning knobs. Ticker-to-profile assignment belongs in `watchlist.txt` because it reflects portfolio intent.

@@ -5,7 +5,20 @@ Profiles describe the intended evaluation horizon before results are known.
 This keeps proxy backtests from becoming ticker-by-ticker optimization.
 """
 
+import logging
+
+from config import WATCHLIST_FILE
+from watchlist_parser import get_watchlist_entry
+
+log = logging.getLogger(__name__)
+
 DEFAULT_INVESTMENT_PROFILE = "high_vol_swing"
+PROFILE_ALIASES = {
+    "core": "core_theme",
+    "growth": "growth_theme",
+    "high_vol": "high_vol_swing",
+    "swing": "high_vol_swing",
+}
 
 INVESTMENT_PROFILES = {
     "core_theme": {
@@ -37,44 +50,42 @@ INVESTMENT_PROFILES = {
     },
 }
 
-TICKER_INVESTMENT_PROFILES = {
-    "MSFT": "core_theme",
-    "ORCL": "core_theme",
-    "VST": "core_theme",
-    "AVAV": "growth_theme",
-    "OKLO": "high_vol_swing",
-    "CORZ": "high_vol_swing",
-    "IREN": "high_vol_swing",
-    "ONDS": "high_vol_swing",
-    "SMR": "high_vol_swing",
-}
-
-TICKER_THEMES = {
-    "MSFT": ["ai_infrastructure", "software_platform"],
-    "ORCL": ["ai_infrastructure", "software_platform"],
-    "VST": ["ai_infrastructure", "energy"],
-    "OKLO": ["ai_infrastructure", "energy"],
-    "SMR": ["ai_infrastructure", "energy"],
-    "IREN": ["ai_infrastructure", "energy"],
-    "CORZ": ["ai_infrastructure", "compute"],
-    "AVAV": ["defense_ai"],
-    "ONDS": ["defense_ai"],
-}
-
 
 def get_ticker_profile_name(ticker: str) -> str:
-    return TICKER_INVESTMENT_PROFILES.get(ticker.upper(), DEFAULT_INVESTMENT_PROFILE)
+    entry = get_watchlist_entry(ticker, WATCHLIST_FILE)
+    return resolve_profile_name(entry.profile if entry else None, ticker=ticker)
 
 
 def get_ticker_profile(ticker: str) -> dict:
     profile_name = get_ticker_profile_name(ticker)
+    return get_profile(profile_name, ticker=ticker)
+
+
+def get_profile(profile_name: str | None, ticker: str | None = None) -> dict:
+    profile_name = resolve_profile_name(profile_name, ticker=ticker)
     profile = dict(INVESTMENT_PROFILES[profile_name])
     profile["profile_name"] = profile_name
     return profile
 
 
+def resolve_profile_name(profile_name: str | None, ticker: str | None = None) -> str:
+    raw_name = (profile_name or DEFAULT_INVESTMENT_PROFILE).strip().lower().replace("-", "_")
+    resolved = PROFILE_ALIASES.get(raw_name, raw_name)
+
+    if resolved not in INVESTMENT_PROFILES:
+        subject = f" for {ticker}" if ticker else ""
+        log.warning(
+            f"Unknown investment profile '{profile_name}'{subject}; "
+            f"using {DEFAULT_INVESTMENT_PROFILE}"
+        )
+        return DEFAULT_INVESTMENT_PROFILE
+
+    return resolved
+
+
 def get_ticker_themes(ticker: str) -> list[str]:
-    return list(TICKER_THEMES.get(ticker.upper(), []))
+    entry = get_watchlist_entry(ticker, WATCHLIST_FILE)
+    return list(entry.themes) if entry else []
 
 
 def profile_context_for_summary(ticker: str) -> dict:
