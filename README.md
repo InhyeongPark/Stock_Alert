@@ -234,6 +234,8 @@ Benchmark and risk context:
 - Long trades include `excess_vs_benchmark_pct`, which is trade P&L minus benchmark return.
 - Bearish avoidance includes `ticker_vs_benchmark_pct`; negative values mean the avoided ticker underperformed that benchmark.
 - Long trades include a `risk` object with `risk_pct_to_stop`, `target_pct`, and `target_r_multiple`.
+- Bullish entries with missing stops or stops at/above entry are stored as `invalid_risk` / `no_risk_defined` and excluded from risk-managed long metrics.
+- Live benchmark returns are cached by date window during a run to avoid repeated SPY/QQQ yfinance calls.
 
 Important detail: if stop and target both touch inside the same daily candle, the trade is marked:
 
@@ -262,6 +264,7 @@ Proxy backtest cleanup:
 - The proxy target is now `entry + ATR * 2.0` for bullish trades instead of a fixed 3% target.
 - Proxy long trades also store `atr_14` and risk fields, including `atr_to_stop`.
 - Proxy metrics include average long excess return versus SPY/QQQ and bearish underperformance rates versus SPY/QQQ when benchmark data is available.
+- Avoidance metrics include both absolute success (`avoided_return_pct > 0`) and benchmark-relative success by SPY/QQQ underperformance.
 
 ---
 
@@ -340,3 +343,4 @@ Targeted checks should cover:
 - Daily OHLC data cannot prove intraday ordering, so ambiguous same-day outcomes are explicitly labeled.
 - Backtests separate executable long-trade metrics from bearish long-avoidance metrics.
 - Proxy backtest uses fixed rules with cooldown and ATR targets; changing those after seeing results creates overfitting risk.
+- Live backtest treats missing/invalid stops as recommendation-quality errors, not unmanaged 5-day buy-and-hold trades.

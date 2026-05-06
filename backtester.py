@@ -44,6 +44,7 @@ TARGET_R_MULTIPLE = 2.0  # Bullish target = entry + 2R, where R is entry-stop ri
 AMBIGUOUS_EXIT_POLICY = "conservative_stop"
 LONG_TRADE = "long_trade"
 LONG_AVOIDANCE = "long_avoidance"
+INVALID_RISK = "invalid_risk"
 BENCHMARK_TICKERS = ("SPY", "QQQ")
 
 
@@ -67,13 +68,14 @@ def run_backtest(lookback_days: int = None):
     log.info(f"📊 Backtesting {len(files)} report(s)...")
 
     all_trades = []
+    benchmark_cache = {}
 
     for filepath in files:
         report = json.loads(filepath.read_text())
         report_date = report.get("date")
 
         for ticker_summary in report.get("tickers", []):
-            trades = _evaluate_ticker(report_date, ticker_summary)
+            trades = _evaluate_ticker(report_date, ticker_summary, benchmark_cache=benchmark_cache)
             all_trades.extend(trades)
 
     if not all_trades:
@@ -86,7 +88,11 @@ def run_backtest(lookback_days: int = None):
     _save_results(metrics, all_trades)
 
 
-def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
+def _evaluate_ticker(
+    report_date: str,
+    summary: dict,
+    benchmark_cache: dict | None = None,
+) -> list[dict]:
     """
     Evaluate one ticker's recommendations against actual subsequent prices.
     Returns list of evaluation dicts with outcomes.
@@ -116,7 +122,12 @@ def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
         log.warning(f"⚠️ {ticker}: price fetch failed for backtest: {e}")
         return []
 
-    benchmark_returns = _fetch_benchmark_returns(start, end, len(actual_prices))
+    benchmark_returns = _fetch_benchmark_returns(
+        start,
+        end,
+        len(actual_prices),
+        cache=benchmark_cache,
+    )
 
     if direction == "bearish":
         reference_price = _safe_float(summary.get("current_price"))
@@ -142,7 +153,27 @@ def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
         if entry_price is None:
             continue
         if stop_price is not None and stop_price >= entry_price:
-            stop_price = None
+            trades.append(_invalid_risk_record(
+                ticker=ticker,
+                report_date=report_date,
+                entry_level=i + 1,
+                entry_price=entry_price,
+                stop_price=stop_price,
+                reason="stop_not_below_entry",
+                benchmark_returns=benchmark_returns,
+            ))
+            continue
+        if stop_price is None:
+            trades.append(_invalid_risk_record(
+                ticker=ticker,
+                report_date=report_date,
+                entry_level=i + 1,
+                entry_price=entry_price,
+                stop_price=stop_price,
+                reason="missing_stop",
+                benchmark_returns=benchmark_returns,
+            ))
+            continue
 
         trade = _simulate_trade(
             ticker=ticker,
@@ -328,6 +359,32 @@ def _evaluate_long_avoidance(
     }
 
 
+def _invalid_risk_record(
+    ticker: str,
+    report_date: str,
+    entry_level: int,
+    entry_price: float,
+    stop_price: float | None,
+    reason: str,
+    benchmark_returns: dict[str, float] | None = None,
+) -> dict:
+    return {
+        "ticker": ticker,
+        "report_date": report_date,
+        "entry_level": entry_level,
+        "evaluation_type": INVALID_RISK,
+        "direction": "bullish",
+        "entry_price": _round_or_none(entry_price),
+        "stop_price": _round_or_none(stop_price),
+        "target_price": None,
+        "risk": _risk_structure(entry_price, stop_price, None),
+        "benchmark_returns_pct": benchmark_returns or {},
+        "entry_triggered": None,
+        "outcome": "no_risk_defined",
+        "invalid_risk_reason": reason,
+    }
+
+
 def _target_from_stop(entry_price: float, stop_price: float | None) -> float | None:
     if stop_price is None:
         return None
@@ -385,7 +442,16 @@ def _round_or_none(value: float | None) -> float | None:
     return round(float(value), 2) if value is not None else None
 
 
-def _fetch_benchmark_returns(start: datetime, end: datetime, holding_days: int) -> dict[str, float]:
+def _fetch_benchmark_returns(
+    start: datetime,
+    end: datetime,
+    holding_days: int,
+    cache: dict | None = None,
+) -> dict[str, float]:
+    cache_key = (start.date().isoformat(), end.date().isoformat(), holding_days)
+    if cache is not None and cache_key in cache:
+        return dict(cache[cache_key])
+
     returns = {}
 
     for symbol in BENCHMARK_TICKERS:
@@ -396,6 +462,9 @@ def _fetch_benchmark_returns(start: datetime, end: datetime, holding_days: int) 
                 returns[symbol] = pct
         except Exception as e:
             log.warning(f"⚠️ {symbol}: benchmark fetch failed: {e}")
+
+    if cache is not None:
+        cache[cache_key] = dict(returns)
 
     return returns
 
@@ -467,10 +536,41 @@ def _underperformance_rates(records: list[dict], field: str) -> dict[str, float]
     }
 
 
+def _benchmark_relative_success_counts(records: list[dict]) -> dict[str, dict]:
+    totals = {}
+    successes = {}
+
+    for record in records:
+        values = record.get("ticker_vs_benchmark_pct") or {}
+        for symbol, value in values.items():
+            totals[symbol] = totals.get(symbol, 0) + 1
+            if value < 0:
+                successes[symbol] = successes.get(symbol, 0) + 1
+
+    return {
+        symbol: {
+            "successes": successes.get(symbol, 0),
+            "failures": total - successes.get(symbol, 0),
+            "success_rate": round(successes.get(symbol, 0) / total * 100, 1),
+        }
+        for symbol, total in totals.items()
+        if total
+    }
+
+
+def _count_by(records: list[dict], field: str) -> dict[str, int]:
+    counts = {}
+    for record in records:
+        key = record.get(field, "unknown")
+        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
 def _compute_metrics(records: list[dict]) -> dict:
     """Compute aggregate performance metrics."""
     long_trades = [r for r in records if r.get("evaluation_type") == LONG_TRADE]
     avoidance = [r for r in records if r.get("evaluation_type") == LONG_AVOIDANCE]
+    invalid_risk = [r for r in records if r.get("evaluation_type") == INVALID_RISK]
     triggered = [t for t in long_trades if t["entry_triggered"]]
     not_triggered = [t for t in long_trades if not t["entry_triggered"]]
 
@@ -478,6 +578,9 @@ def _compute_metrics(records: list[dict]) -> dict:
         "total_evaluations": len(records),
         "long_trade_signals": len(long_trades),
         "avoidance_signals": len(avoidance),
+        "invalid_risk_signals": len(invalid_risk),
+        "invalid_risk_count": len(invalid_risk),
+        "invalid_risk_reasons": _count_by(invalid_risk, "invalid_risk_reason"),
         "target_r_multiple": TARGET_R_MULTIPLE,
     }
 
@@ -556,6 +659,7 @@ def _compute_metrics(records: list[dict]) -> dict:
             ),
             "avg_ticker_vs_benchmark_pct": _avg_nested(avoidance, "ticker_vs_benchmark_pct"),
             "benchmark_underperformance_rate": _underperformance_rates(avoidance, "ticker_vs_benchmark_pct"),
+            "benchmark_relative_avoidance": _benchmark_relative_success_counts(avoidance),
             "avoided_loss_count": len([a for a in avoidance if a["outcome"] == "avoided_loss"]),
             "missed_gain_count": len([a for a in avoidance if a["outcome"] == "missed_gain"]),
         })
@@ -569,6 +673,7 @@ def _compute_metrics(records: list[dict]) -> dict:
             "avg_missed_upside_pct": None,
             "avg_ticker_vs_benchmark_pct": {},
             "benchmark_underperformance_rate": {},
+            "benchmark_relative_avoidance": {},
             "avoided_loss_count": 0,
             "missed_gain_count": 0,
         })
@@ -584,8 +689,11 @@ def _print_report(metrics: dict, records: list[dict]):
     log.info(f"  Total evaluations: {metrics['total_evaluations']}")
     log.info(
         f"  Long trade signals: {metrics['long_trade_signals']} | "
-        f"Long-avoidance signals: {metrics['avoidance_signals']}"
+        f"Long-avoidance signals: {metrics['avoidance_signals']} | "
+        f"Invalid-risk signals: {metrics['invalid_risk_signals']}"
     )
+    if metrics["invalid_risk_signals"]:
+        log.info(f"  Invalid-risk reasons: {metrics['invalid_risk_reasons']}")
     if metrics["long_trade_signals"]:
         log.info(f"  Long entry hit rate: {metrics['entry_hit_rate']}%")
         log.info(f"  Long win rate: {metrics['win_rate']}%")
@@ -609,6 +717,7 @@ def _print_report(metrics: dict, records: list[dict]):
         if metrics["avg_ticker_vs_benchmark_pct"]:
             log.info(f"  Avg ticker vs benchmark: {metrics['avg_ticker_vs_benchmark_pct']}")
             log.info(f"  Benchmark underperformance rate: {metrics['benchmark_underperformance_rate']}")
+            log.info(f"  Benchmark-relative avoidance: {metrics['benchmark_relative_avoidance']}")
     log.info("=" * 60)
 
 

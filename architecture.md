@@ -189,6 +189,8 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **타겟:** bullish live target은 고정 3%가 아니라 저장된 stop 거리 기준 `entry + 2R`
 - **벤치마크:** 같은 평가 창의 SPY/QQQ 수익률을 붙여 long excess return과 bearish underperformance를 확인
 - **리스크:** 롱 평가에는 stop까지의 위험률, target 수익률, target R-multiple을 저장
+- **무효 리스크:** stop이 없거나 entry 이상이면 `invalid_risk`/`no_risk_defined`로 분리하고 long 성과 지표에서 제외
+- **성능:** live benchmark 수익률은 날짜 창 기준으로 캐시하여 반복 yfinance 호출을 줄임
 
 ### Proxy Walk-Forward (Phase 5b) — `proxy_backtest.py`
 - **질문:** "Claude에게 주는 기술지표 조합이 유효한가?"
@@ -198,6 +200,7 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **쿨다운:** 한 추세 구간이 매일 독립 신호로 중복 집계되지 않도록 `HOLDING_DAYS`만큼 cooldown 적용
 - **타겟:** bullish proxy target은 고정 3%가 아니라 `entry + ATR * 2.0`
 - **벤치마크/리스크:** SPY/QQQ excess/underperformance와 ATR 기반 risk structure를 함께 저장
+- **회피 평가:** bearish avoidance는 절대수익률 기준 성공률과 SPY/QQQ 대비 underperformance 기준 성공률을 함께 제공
 
 ---
 

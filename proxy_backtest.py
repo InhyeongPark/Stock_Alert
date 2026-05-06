@@ -101,8 +101,12 @@ def run_proxy_backtest(ticker: str, years: int = 2):
             continue
 
         # Evaluate next N days
-        entry_price = row["Close"]
-        atr = row.get("ATRr_14", entry_price * 0.02)
+        entry_price = _safe_float(row["Close"])
+        if entry_price is None:
+            continue
+        atr = _safe_float(row.get("ATRr_14", entry_price * 0.02))
+        if atr is None:
+            atr = entry_price * 0.02
         future = df.iloc[i + 1: i + 1 + HOLDING_DAYS]
         benchmark_returns = _benchmark_returns_for_window(benchmark_data, future)
 
@@ -405,6 +409,28 @@ def _underperformance_rates(records: list[dict], field: str) -> dict[str, float]
     }
 
 
+def _benchmark_relative_success_counts(records: list[dict]) -> dict[str, dict]:
+    totals = {}
+    successes = {}
+
+    for record in records:
+        values = record.get("ticker_vs_benchmark_pct") or {}
+        for symbol, value in values.items():
+            totals[symbol] = totals.get(symbol, 0) + 1
+            if value < 0:
+                successes[symbol] = successes.get(symbol, 0) + 1
+
+    return {
+        symbol: {
+            "successes": successes.get(symbol, 0),
+            "failures": total - successes.get(symbol, 0),
+            "success_rate": round(successes.get(symbol, 0) / total * 100, 1),
+        }
+        for symbol, total in totals.items()
+        if total
+    }
+
+
 def _safe_float(value) -> float | None:
     try:
         if value is None or value == "":
@@ -494,6 +520,7 @@ def _compute_metrics(records: list[dict]) -> dict:
             ),
             "avg_ticker_vs_benchmark_pct": _avg_nested(avoidance, "ticker_vs_benchmark_pct"),
             "benchmark_underperformance_rate": _underperformance_rates(avoidance, "ticker_vs_benchmark_pct"),
+            "benchmark_relative_avoidance": _benchmark_relative_success_counts(avoidance),
             "avoided_loss_count": len([a for a in avoidance if a["outcome"] == "avoided_loss"]),
             "missed_gain_count": len([a for a in avoidance if a["outcome"] == "missed_gain"]),
         })
@@ -507,6 +534,7 @@ def _compute_metrics(records: list[dict]) -> dict:
             "avg_missed_upside_pct": None,
             "avg_ticker_vs_benchmark_pct": {},
             "benchmark_underperformance_rate": {},
+            "benchmark_relative_avoidance": {},
             "avoided_loss_count": 0,
             "missed_gain_count": 0,
         })
@@ -549,6 +577,7 @@ def _print_report(ticker: str, metrics: dict, trades: list[dict], years: int):
         if metrics["avg_ticker_vs_benchmark_pct"]:
             log.info(f"  Avg ticker vs benchmark: {metrics['avg_ticker_vs_benchmark_pct']}")
             log.info(f"  Benchmark underperformance rate: {metrics['benchmark_underperformance_rate']}")
+            log.info(f"  Benchmark-relative avoidance: {metrics['benchmark_relative_avoidance']}")
 
     log.info("  Fixed rules are not tuned to results. Bearish means avoid long, not short.")
     log.info("=" * 60)
