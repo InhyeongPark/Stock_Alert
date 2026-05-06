@@ -318,12 +318,14 @@ This second pass does not rewrite the full email analysis and does not change en
 
 Expected daily cost is mostly Claude API usage. yfinance, Gmail SMTP, GitHub Actions, Discord webhook, cron-job.org, and Polymarket read-only queries are free for this use case.
 
-For a 5-stock watchlist using the default Sonnet model, the rough target is:
+For the current 9-stock watchlist using the default Sonnet model, the rough target is:
 
 ```text
-Daily:   about $0.40-$0.60 before optional Polymarket Claude reviews
-Monthly: about $9-$13 on trading days before optional Polymarket Claude reviews
+Daily:   about $0.70-$1.10 before optional Polymarket Claude reviews
+Monthly: about $16-$23 on trading days before optional Polymarket Claude reviews
 ```
+
+Cost scales roughly linearly with ticker count. Watchlist metadata itself is local config and does not add meaningful token usage.
 
 Each run updates `usage_log.json`.
 

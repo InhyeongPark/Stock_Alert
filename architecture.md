@@ -177,7 +177,7 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 
 | 항목 | 일일 비용 | 월간 비용 |
 |------|-----------|-----------|
-| Claude API (Sonnet 4.6, 5종목) | ~$0.40-0.60 | ~$9-13 |
+| Claude API (Sonnet 4.6, 현재 9종목) | ~$0.70-1.10 | ~$16-23 |
 | GitHub Actions | 무료 | 무료 |
 | yfinance | 무료 | 무료 |
 | Gmail SMTP | 무료 | 무료 |
@@ -185,7 +185,7 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 | Polymarket API | 무료 | 무료 |
 | cron-job.org | 무료 | 무료 |
 | Backtest (yfinance only) | 무료 | 무료 |
-| **총계** | **~$0.50** | **~$11** |
+| **총계** | **~$0.90** | **~$20** |
 
 ---
 
