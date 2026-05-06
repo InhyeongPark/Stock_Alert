@@ -3,6 +3,8 @@ Prompt templates for Claude analysis.
 Separated from logic so they can be edited without touching code.
 """
 
+import json
+
 
 def build_tech_summary_ko(d: dict) -> str:
     """Build the Korean technical data block."""
@@ -429,6 +431,65 @@ Extract values from your analysis above. Prices as numbers only, direction as bu
   "outlook_mid": "one line mid-term outlook",
   "outlook_long": "one line long-term outlook",
   "key_reasons": ["reason 1", "reason 2", "reason 3"]
+}}
+```
+"""
+
+
+def get_polymarket_review_prompt(
+    summary: dict,
+    polymarket_result: dict,
+    comparison: dict,
+    language: str,
+) -> str:
+    """Build a second-pass prompt for judging Polymarket relevance."""
+    payload = {
+        "claude_original_summary": {
+            "ticker": summary.get("ticker"),
+            "direction": summary.get("direction"),
+            "entry_suitability": summary.get("entry_suitability"),
+            "current_price": summary.get("current_price"),
+            "outlook_short": summary.get("outlook_short"),
+            "outlook_mid": summary.get("outlook_mid"),
+            "outlook_long": summary.get("outlook_long"),
+            "key_reasons": summary.get("key_reasons", []),
+        },
+        "polymarket_result": polymarket_result,
+        "mechanical_comparison": comparison,
+    }
+    payload_json = json.dumps(payload, ensure_ascii=False, indent=2)
+
+    response_language = "Korean" if language == "ko" else "English"
+
+    return f"""You are reviewing whether a Polymarket prediction market should adjust a stock analysis.
+
+Use ONLY the data in the JSON below. Do not browse. Do not invent missing facts.
+The first Claude analysis has already been completed independently; your job is only to judge whether the Polymarket market is relevant enough to strengthen, weaken, ignore, or leave unchanged that original view.
+
+Important rules:
+- A Polymarket question can be unrelated or only indirectly related to stock direction.
+- A high YES probability is not automatically bullish. Use `question_direction`.
+- If liquidity is weak, horizon is mismatched, or the question is vague, prefer `ignore` or `neutral`.
+- Do not change entry or stop prices.
+- Return JSON only, inside a ```json fenced block.
+- Write `reason` in {response_language}.
+
+Input:
+```json
+{payload_json}
+```
+
+Output schema:
+```json
+{{
+  "review_status": "reviewed",
+  "polymarket_relevance": "direct/indirect/unrelated/unknown",
+  "horizon_alignment": "high/medium/low/unknown",
+  "confidence_adjustment": "strengthen/weaken/neutral/ignore",
+  "adjustment_magnitude": "high/medium/low/none",
+  "final_direction_after_polymarket": "bullish/bearish/neutral/unchanged",
+  "final_confidence_after_polymarket": "high/medium/low/unknown",
+  "reason": "one concise explanation"
 }}
 ```
 """

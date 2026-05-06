@@ -5,6 +5,7 @@ All formatting / template logic lives here — no business logic.
 
 import re
 from datetime import datetime
+from html import escape
 
 from config import CLAUDE_MODEL, TZ, REPORT_LANGUAGE
 
@@ -12,6 +13,7 @@ from config import CLAUDE_MODEL, TZ, REPORT_LANGUAGE
 def build_email_html(
     analyses: list[tuple[dict, str]],
     usage_summary: dict | None = None,
+    summaries: list[dict] | None = None,
 ) -> str:
     """Convert analysis results + usage stats into an HTML email string."""
     now = datetime.now(TZ)
@@ -26,7 +28,11 @@ def build_email_html(
         header_title = "📈 Daily Stock Analysis Report"
         header_sub = f"{date_str} | {len(analyses)} stocks analyzed"
 
-    cards_html = "".join(_build_stock_card(sd, a) for sd, a in analyses)
+    summary_by_ticker = {s.get("ticker"): s for s in summaries or []}
+    cards_html = "".join(
+        _build_stock_card(sd, a, summary_by_ticker.get(sd["ticker"]))
+        for sd, a in analyses
+    )
     usage_html = _build_usage_section(usage_summary) if usage_summary else ""
 
     return f"""<!DOCTYPE html>
@@ -53,13 +59,14 @@ def build_email_html(
 </html>"""
 
 
-def _build_stock_card(stock_data: dict, analysis: str) -> str:
+def _build_stock_card(stock_data: dict, analysis: str, summary: dict | None = None) -> str:
     ticker = stock_data["ticker"]
     price = stock_data["current_price"]
     change = stock_data["daily_change_pct"]
     change_color = "#22c55e" if change >= 0 else "#ef4444"
     change_arrow = "▲" if change >= 0 else "▼"
     analysis_html = _markdown_to_html(analysis)
+    polymarket_html = _build_polymarket_section(summary) if summary else ""
 
     return f"""
     <div style="background:#ffffff;border-radius:12px;padding:24px;margin-bottom:24px;
@@ -83,7 +90,69 @@ def _build_stock_card(stock_data: dict, analysis: str) -> str:
         <div style="font-size:14px;line-height:1.7;color:#374151;">
             {analysis_html}
         </div>
+        {polymarket_html}
     </div>"""
+
+
+def _build_polymarket_section(summary: dict) -> str:
+    pm = summary.get("polymarket")
+    review = summary.get("polymarket_claude_review")
+    comparison = summary.get("polymarket_comparison", {})
+
+    if not pm and not review:
+        return ""
+
+    if REPORT_LANGUAGE == "ko":
+        title = "Polymarket 사후 검토"
+        direction_label = "Polymarket 방향"
+        probability_label = "YES 확률"
+        adjustment_label = "Claude 2차 판단"
+        reason_label = "이유"
+        no_market = "관련 Polymarket 시장 없음"
+    else:
+        title = "Polymarket Post-Review"
+        direction_label = "Polymarket Direction"
+        probability_label = "YES Probability"
+        adjustment_label = "Claude Second-Pass View"
+        reason_label = "Reason"
+        no_market = "No related Polymarket market"
+
+    if not pm or not pm.get("available"):
+        body = escape((pm or {}).get("reason", no_market))
+    else:
+        question = escape(str(pm.get("question", "Unknown")))
+        pm_direction = escape(str(pm.get("polymarket_direction", "unknown")))
+        yes_prob = pm.get("probability_yes_pct", "N/A")
+        match_msg = escape(str(comparison.get("message", "")))
+
+        review_html = ""
+        if review:
+            adjustment = escape(str(review.get("confidence_adjustment", "unknown")))
+            magnitude = escape(str(review.get("adjustment_magnitude", "unknown")))
+            confidence = escape(str(review.get("final_confidence_after_polymarket", "unknown")))
+            reason = escape(str(review.get("reason", "N/A")))
+            review_html = (
+                f"<p style='margin:8px 0 0;'><strong>{adjustment_label}:</strong> "
+                f"{adjustment} ({magnitude}), confidence: {confidence}</p>"
+                f"<p style='margin:6px 0 0;'><strong>{reason_label}:</strong> {reason}</p>"
+            )
+
+        body = (
+            f"<p style='margin:0 0 8px;'><strong>Question:</strong> {question}</p>"
+            f"<p style='margin:0;'><strong>{direction_label}:</strong> {pm_direction} | "
+            f"<strong>{probability_label}:</strong> {yes_prob}%</p>"
+            f"<p style='margin:6px 0 0;color:#475569;'>{match_msg}</p>"
+            f"{review_html}"
+        )
+
+    return f"""
+        <div style="margin-top:18px;padding:14px;border-radius:10px;
+                    background:#f8fafc;border:1px solid #cbd5e1;
+                    font-size:13px;line-height:1.55;color:#334155;">
+            <h4 style="margin:0 0 8px;color:#0f172a;font-size:15px;">{title}</h4>
+            {body}
+        </div>
+    """
 
 
 def _build_usage_section(summary: dict) -> str:
@@ -93,12 +162,16 @@ def _build_usage_section(summary: dict) -> str:
     total_out = summary.get("total_output_tokens", 0)
     total_ws = summary.get("total_web_searches", 0)
     model = summary.get("model", CLAUDE_MODEL)
+    calls = summary.get("per_call", summary.get("per_ticker", []))
+    total_calls = summary.get("total_calls", len(calls))
 
     if REPORT_LANGUAGE == "ko":
         per_ticker_rows = ""
-        for t in summary.get("per_ticker", []):
+        for t in calls:
+            call_type = t.get("call_type", "analysis")
             per_ticker_rows += (
                 f"<tr><td style='padding:4px 8px;'>{t['ticker']}</td>"
+                f"<td style='padding:4px 8px;'>{call_type}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['input_tokens']:,}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['output_tokens']:,}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['web_searches']}</td>"
@@ -112,6 +185,7 @@ def _build_usage_section(summary: dict) -> str:
             <table style="width:100%;font-size:13px;border-collapse:collapse;color:#374151;">
                 <tr style="background:#e0f2fe;">
                     <th style="padding:6px 8px;text-align:left;">종목</th>
+                    <th style="padding:6px 8px;text-align:left;">호출</th>
                     <th style="padding:6px 8px;text-align:right;">Input</th>
                     <th style="padding:6px 8px;text-align:right;">Output</th>
                     <th style="padding:6px 8px;text-align:right;">검색</th>
@@ -120,6 +194,7 @@ def _build_usage_section(summary: dict) -> str:
                 {per_ticker_rows}
                 <tr style="border-top:2px solid #0369a1;font-weight:bold;">
                     <td style="padding:6px 8px;">합계</td>
+                    <td style="padding:6px 8px;">{total_calls} calls</td>
                     <td style="padding:6px 8px;text-align:right;">{total_in:,}</td>
                     <td style="padding:6px 8px;text-align:right;">{total_out:,}</td>
                     <td style="padding:6px 8px;text-align:right;">{total_ws}</td>
@@ -134,9 +209,11 @@ def _build_usage_section(summary: dict) -> str:
         </div>"""
     else:
         per_ticker_rows = ""
-        for t in summary.get("per_ticker", []):
+        for t in calls:
+            call_type = t.get("call_type", "analysis")
             per_ticker_rows += (
                 f"<tr><td style='padding:4px 8px;'>{t['ticker']}</td>"
+                f"<td style='padding:4px 8px;'>{call_type}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['input_tokens']:,}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['output_tokens']:,}</td>"
                 f"<td style='padding:4px 8px;text-align:right;'>{t['web_searches']}</td>"
@@ -150,6 +227,7 @@ def _build_usage_section(summary: dict) -> str:
             <table style="width:100%;font-size:13px;border-collapse:collapse;color:#374151;">
                 <tr style="background:#e0f2fe;">
                     <th style="padding:6px 8px;text-align:left;">Ticker</th>
+                    <th style="padding:6px 8px;text-align:left;">Call</th>
                     <th style="padding:6px 8px;text-align:right;">Input</th>
                     <th style="padding:6px 8px;text-align:right;">Output</th>
                     <th style="padding:6px 8px;text-align:right;">Searches</th>
@@ -158,6 +236,7 @@ def _build_usage_section(summary: dict) -> str:
                 {per_ticker_rows}
                 <tr style="border-top:2px solid #0369a1;font-weight:bold;">
                     <td style="padding:6px 8px;">Total</td>
+                    <td style="padding:6px 8px;">{total_calls} calls</td>
                     <td style="padding:6px 8px;text-align:right;">{total_in:,}</td>
                     <td style="padding:6px 8px;text-align:right;">{total_out:,}</td>
                     <td style="padding:6px 8px;text-align:right;">{total_ws}</td>

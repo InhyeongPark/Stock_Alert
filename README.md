@@ -92,14 +92,16 @@ Edit `config.py`:
 ENABLE_EMAIL_REPORT = True       # Full HTML email
 ENABLE_SUMMARY_JSON = True       # Required for Discord/backtesting history
 ENABLE_DISCORD_DIGEST = True     # Compact Discord digest
-ENABLE_POLYMARKET = False        # Optional prediction-market comparison
+ENABLE_POLYMARKET = True         # Optional prediction-market comparison
+ENABLE_POLYMARKET_CLAUDE_REVIEW = True   # Optional second-pass Claude review
 ENABLE_BACKTEST_EXPORT = False   # Reserved; backtests are currently manual
 ```
 
 Recommended defaults:
 
 - Keep `ENABLE_SUMMARY_JSON = True` so GitHub Actions accumulates backtestable history.
-- Keep `ENABLE_POLYMARKET = False` until you are comfortable with the matching quality.
+- Set `ENABLE_POLYMARKET = False` if matching quality is not good enough for your watchlist.
+- Set `ENABLE_POLYMARKET_CLAUDE_REVIEW = False` if you want to avoid extra Claude calls.
 - Use `ENABLE_DISCORD_DIGEST = True` only after adding `DISCORD_WEBHOOK_URL`.
 
 ---
@@ -234,7 +236,7 @@ Do not tune proxy rules after looking at results unless you explicitly start a n
 
 ## Polymarket Notes
 
-Polymarket is optional and disabled by default.
+Polymarket is controlled by feature flags and can be disabled at any time.
 
 The client now tries to infer whether a YES price is bullish or bearish from the question wording:
 
@@ -243,6 +245,16 @@ The client now tries to infer whether a YES price is bullish or bearish from the
 - unclear wording -> `unknown`
 
 Treat this as a secondary sanity check, not a trading signal.
+
+If `ENABLE_POLYMARKET_CLAUDE_REVIEW = True`, the pipeline uses a second Claude call after the original analysis:
+
+```text
+1. Claude writes the normal independent stock analysis.
+2. Polymarket searches for a related market.
+3. Claude reviews only the Polymarket result and decides whether it should strengthen, weaken, ignore, or leave unchanged the original view.
+```
+
+This second pass does not rewrite the full email analysis and does not change entry/stop prices. It adds `polymarket_claude_review` to the saved JSON summary, shows a separate post-review box in the email, and, when Discord is enabled, shows the adjustment in the digest. The call is skipped when the market is unavailable, directionally unclear, neutral, or below the liquidity threshold.
 
 ---
 
@@ -253,11 +265,18 @@ Expected daily cost is mostly Claude API usage. yfinance, Gmail SMTP, GitHub Act
 For a 5-stock watchlist using the default Sonnet model, the rough target is:
 
 ```text
-Daily:   about $0.40-$0.60
-Monthly: about $9-$13 on trading days
+Daily:   about $0.40-$0.60 before optional Polymarket Claude reviews
+Monthly: about $9-$13 on trading days before optional Polymarket Claude reviews
 ```
 
 Each run updates `usage_log.json`.
+
+Usage tracking separates primary stock analysis calls from optional second-pass calls:
+
+- `analysis`: the full Claude report for a ticker
+- `polymarket_review`: the no-web-search second-pass review of a Polymarket signal
+
+The total cost includes both, while `tickers_analyzed` counts only primary stock analyses.
 
 ---
 
@@ -282,4 +301,5 @@ Targeted checks should cover:
 - Daily CI commits summary JSON, not backtest result JSON.
 - Backtests are manual so the daily report stays fast and predictable.
 - `ENABLE_BACKTEST_EXPORT` is currently reserved and not wired into the daily orchestrator.
+- `ENABLE_POLYMARKET_CLAUDE_REVIEW` adds optional second-pass confidence review but does not rewrite the original recommendation.
 - Daily OHLC data cannot prove intraday ordering, so ambiguous same-day outcomes are explicitly labeled.

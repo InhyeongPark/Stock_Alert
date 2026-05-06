@@ -40,10 +40,11 @@ from config import (
     ENABLE_SUMMARY_JSON,
     ENABLE_DISCORD_DIGEST,
     ENABLE_POLYMARKET,
+    ENABLE_POLYMARKET_CLAUDE_REVIEW,
 )
 from market_calendar import is_market_open_today
 from data_fetcher import load_watchlist, fetch_stock_data
-from analyzer import analyze_with_claude
+from analyzer import analyze_with_claude, review_polymarket_with_claude
 from email_builder import build_email_html
 from email_sender import send_email
 from usage_tracker import UsageTracker
@@ -132,13 +133,9 @@ def main():
         log.error("No successful analyses — aborting")
         return
 
-    # Step 3: Save usage
-    usage_summary = tracker.get_summary()  # BEFORE save_daily to avoid double-counting
-    tracker.save_daily()
-
     analyzed_tickers = [sd["ticker"] for sd, _ in analyses]
 
-    # Step 4: Optional machine-readable summary, Polymarket enrichment, Discord digest
+    # Step 3: Optional machine-readable summary, Polymarket enrichment, Discord digest
     if ENABLE_SUMMARY_JSON:
         if ENABLE_POLYMARKET:
             stock_data_by_ticker = {sd["ticker"]: sd for sd, _ in analyses}
@@ -158,6 +155,24 @@ def main():
                     )
                     summary["polymarket"] = polymarket_result
                     summary["polymarket_comparison"] = comparison
+
+                    if ENABLE_POLYMARKET_CLAUDE_REVIEW and _should_review_polymarket(polymarket_result):
+                        summary["polymarket_claude_review"] = review_polymarket_with_claude(
+                            summary=summary,
+                            polymarket_result=polymarket_result,
+                            comparison=comparison,
+                            language=REPORT_LANGUAGE,
+                            tracker=tracker,
+                        )
+                    elif ENABLE_POLYMARKET_CLAUDE_REVIEW:
+                        summary["polymarket_claude_review"] = {
+                            "review_status": "skipped",
+                            "confidence_adjustment": "ignore",
+                            "adjustment_magnitude": "none",
+                            "final_direction_after_polymarket": "unchanged",
+                            "final_confidence_after_polymarket": "unknown",
+                            "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear.",
+                        }
                 except Exception as e:
                     log.warning(f"{ticker}: Polymarket enrichment failed: {e}")
                     summary["polymarket"] = {
@@ -175,9 +190,17 @@ def main():
     else:
         log.info("Summary JSON disabled; skipping Discord and Polymarket integrations")
 
+    # Step 4: Save usage after all Claude calls, including optional second-pass reviews
+    usage_summary = tracker.get_summary()  # BEFORE save_daily to avoid double-counting
+    tracker.save_daily()
+
     # Step 5: Optional detailed email report
     if ENABLE_EMAIL_REPORT:
-        html = build_email_html(analyses, usage_summary)
+        html = build_email_html(
+            analyses,
+            usage_summary,
+            summaries=summaries if ENABLE_SUMMARY_JSON else None,
+        )
 
         # Save local copy
         output_filename = f"report_{datetime.now(TZ).strftime('%Y%m%d_%H%M')}.html"
@@ -197,6 +220,22 @@ def main():
     log.info(f"Today's cost: ${usage_summary['today_cost_usd']:.2f}")
     log.info(f"Monthly total: ${usage_summary['monthly_cost_usd']:.2f}")
     log.info("=" * 60)
+
+
+def _should_review_polymarket(polymarket_result: dict) -> bool:
+    """Return True only when the Polymarket signal is strong enough to spend a Claude call."""
+    if not polymarket_result.get("available"):
+        return False
+
+    if polymarket_result.get("question_direction") == "unknown":
+        return False
+
+    probability_yes = polymarket_result.get("probability_yes_pct")
+    if probability_yes is None or 40 < probability_yes < 60:
+        return False
+
+    liquidity = polymarket_result.get("liquidity_usd") or 0
+    return liquidity >= 1000
 
 
 if __name__ == "__main__":

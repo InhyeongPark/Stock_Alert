@@ -134,7 +134,8 @@ watchlist.txt
 ENABLE_EMAIL_REPORT = True       # 📧 이메일 리포트
 ENABLE_SUMMARY_JSON = True       # 📋 JSON 요약 저장 (다른 기능의 기반)
 ENABLE_DISCORD_DIGEST = True     # 💬 Discord 아침 요약
-ENABLE_POLYMARKET = False        # 🔮 Polymarket 방향 대조
+ENABLE_POLYMARKET = True         # 🔮 Polymarket 방향 대조
+ENABLE_POLYMARKET_CLAUDE_REVIEW = True   # 🔎 Claude 2차 관련성/확신도 검토
 ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 ```
 
@@ -142,6 +143,8 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - Discord, Polymarket, Backtest 모두 `ENABLE_SUMMARY_JSON = True`가 전제
 - 각 기능은 독립적으로 on/off 가능
 - Polymarket은 관련 시장이 없으면 자동 N/A
+- Polymarket Claude review는 원본 분석을 다시 쓰지 않고 JSON에 `polymarket_claude_review`만 추가
+- usage_tracker는 `analysis`와 `polymarket_review` 호출을 구분해서 총 비용에 합산
 
 ---
 
@@ -153,6 +156,7 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 | 1 | report_summary.json 저장 | summary_builder.py | ✅ 완료 | $0 추가 |
 | 2 | Discord 아침 요약 | discord_notifier.py | ✅ 완료 | $0 |
 | 3 | Polymarket 방향 대조 | polymarket_client.py | ✅ 완료 | $0 (공개 API) |
+| 3b | Polymarket Claude 2차 검토 | analyzer.py / prompts.py | ✅ 완료 | 조건부 Claude 비용 |
 | 5a | Live walk-forward 백테스트 | backtester.py | ✅ 완료 | $0 |
 | 5b | Proxy 규칙 백테스트 | proxy_backtest.py | ✅ 완료 | $0 |
 

@@ -18,6 +18,7 @@ MODEL_PRICING = {
 
 MAX_OUTPUT_TOKENS = 8000        # Reduced from 16000; paired with conciseness prompt
 WEB_SEARCH_MAX_USES = 5        # Limit web searches per ticker for cost control
+POLYMARKET_REVIEW_MAX_TOKENS = 1200  # Low-cost second-pass review, no web search
 
 # Report Settings
 REPORT_LANGUAGE = "ko"          # "ko" (Korean) or "en" (English)
@@ -40,4 +41,5 @@ ENABLE_EMAIL_REPORT = True
 ENABLE_SUMMARY_JSON = True       # Phase 1: save report_summary JSON
 ENABLE_DISCORD_DIGEST = True     # Phase 2: send compact digest to Discord
 ENABLE_POLYMARKET = True        # Phase 3: Polymarket direction validation
+ENABLE_POLYMARKET_CLAUDE_REVIEW = True  # Phase 3b: ask Claude to judge Polymarket relevance
 ENABLE_BACKTEST_EXPORT = False   # Phase 5: backtesting data export

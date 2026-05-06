@@ -27,7 +27,7 @@ class UsageTracker:
         self.total_output_tokens = 0
         self.total_web_searches = 0
 
-    def record(self, ticker: str, usage) -> dict:
+    def record(self, ticker: str, usage, call_type: str = "analysis") -> dict:
         """
         Record a single API call's usage.
         `usage` is the response.usage object from Anthropic SDK.
@@ -53,6 +53,7 @@ class UsageTracker:
 
         entry = {
             "ticker": ticker,
+            "call_type": call_type,
             "input_tokens": input_tok,
             "output_tokens": output_tok,
             "web_searches": web_searches,
@@ -60,8 +61,9 @@ class UsageTracker:
         }
         self.calls.append(entry)
 
+        label = ticker if call_type == "analysis" else f"{ticker}:{call_type}"
         log.info(
-            f"{ticker}: {input_tok:,} in + {output_tok:,} out + "
+            f"{label}: {input_tok:,} in + {output_tok:,} out + "
             f"{web_searches} searches = ${call_cost:.4f}"
         )
         return entry
@@ -78,14 +80,26 @@ class UsageTracker:
 
     def get_summary(self) -> dict:
         """Return a summary dict for display in the email."""
+        analysis_calls = [c for c in self.calls if c.get("call_type", "analysis") == "analysis"]
+        review_calls = [c for c in self.calls if c.get("call_type", "analysis") != "analysis"]
+        analyzed_tickers = sorted({c["ticker"] for c in analysis_calls})
+        today_str = datetime.now(TZ).strftime("%Y-%m-%d")
+
         return {
             "model": CLAUDE_MODEL,
-            "tickers_analyzed": len(self.calls),
+            "tickers_analyzed": len(analyzed_tickers),
+            "total_calls": len(self.calls),
+            "analysis_calls": len(analysis_calls),
+            "review_calls": len(review_calls),
             "total_input_tokens": self.total_input_tokens,
             "total_output_tokens": self.total_output_tokens,
             "total_web_searches": self.total_web_searches,
             "today_cost_usd": round(self.today_cost, 4),
-            "monthly_cost_usd": round(self._load_monthly_total() + self.today_cost, 4),
+            "monthly_cost_usd": round(
+                self._load_monthly_total(exclude_date=today_str) + self.today_cost,
+                4,
+            ),
+            "per_call": self.calls,
             "per_ticker": self.calls,
         }
 
@@ -108,17 +122,22 @@ class UsageTracker:
             data[month_str] = {}
 
         data[month_str][today_str] = {
+            "tickers_analyzed": len({c["ticker"] for c in self.calls if c.get("call_type", "analysis") == "analysis"}),
+            "total_calls": len(self.calls),
+            "analysis_calls": len([c for c in self.calls if c.get("call_type", "analysis") == "analysis"]),
+            "review_calls": len([c for c in self.calls if c.get("call_type", "analysis") != "analysis"]),
             "input_tokens": self.total_input_tokens,
             "output_tokens": self.total_output_tokens,
             "web_searches": self.total_web_searches,
             "cost_usd": round(self.today_cost, 4),
             "model": CLAUDE_MODEL,
+            "calls": self.calls,
         }
 
         log_path.write_text(json.dumps(data, indent=2))
         log.info(f"Usage saved to {USAGE_LOG_FILE}")
 
-    def _load_monthly_total(self) -> float:
+    def _load_monthly_total(self, exclude_date: str | None = None) -> float:
         """Load this month's cumulative cost from the log file."""
         month_str = datetime.now(TZ).strftime("%Y-%m")
         log_path = Path(USAGE_LOG_FILE)
@@ -129,6 +148,10 @@ class UsageTracker:
         try:
             data = json.loads(log_path.read_text())
             month_data = data.get(month_str, {})
-            return sum(day.get("cost_usd", 0) for day in month_data.values())
+            return sum(
+                day.get("cost_usd", 0)
+                for date, day in month_data.items()
+                if date != exclude_date
+            )
         except (json.JSONDecodeError, OSError):
             return 0.0

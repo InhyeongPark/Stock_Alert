@@ -127,6 +127,21 @@ def _build_embed(summary: dict) -> dict | None:
         {"name": "💡 핵심 근거", "value": reason_str, "inline": False},
     ]
 
+    review = summary.get("polymarket_claude_review")
+    if review:
+        adjustment = review.get("confidence_adjustment", "unknown")
+        magnitude = review.get("adjustment_magnitude", "unknown")
+        final_confidence = review.get("final_confidence_after_polymarket", "unknown")
+        review_reason = review.get("reason", "N/A")
+        fields.append({
+            "name": "🔎 Polymarket Claude 검토",
+            "value": (
+                f"{adjustment.upper()} ({magnitude}) | "
+                f"final confidence: {final_confidence}\n{review_reason}"
+            )[:1024],
+            "inline": False,
+        })
+
     parse_status = summary.get("summary_parse_status", "unknown")
     if parse_status == "failed":
         color = 0xEF4444
