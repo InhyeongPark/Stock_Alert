@@ -1,0 +1,220 @@
+# 📈 Stock Alert — Project Architecture
+
+## System Overview
+
+매일 아침 관심 종목을 자동 분석하고, 진입/손절 추천을 이메일 + Discord로 보내고,
+예측시장 대조와 성과 검증까지 하는 end-to-end 주식 분석 시스템.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    cron-job.org (9:00 AM ET)                     │
+│                    External trigger → GitHub Actions             │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ workflow_dispatch
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     stock_report.py (Orchestrator)               │
+│                                                                  │
+│  Step 0: 휴장일 체크 (market_calendar.py)                        │
+│  Step 1: watchlist.txt 로드                                      │
+│  Step 2: 종목별 데이터 수집 + Claude 분석                         │
+│  Step 3: API 사용량 추적                                         │
+│  Step 4: HTML 이메일 생성                                        │
+│  Step 5: Gmail 발송                                              │
+│  Step 6: report_summary.json 저장 ──────────────┐               │
+│  Step 7: Discord 요약 알림 ──────────────────────┤               │
+│  Step 8: Polymarket 방향성 대조 ─────────────────┘               │
+└─────────────────────────────────────────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+         📧 Email       💬 Discord    📋 JSON Summary
+       (상세 리포트)    (아침 요약)    (데이터 축적)
+                                           │
+                              ┌─────────────┤
+                              ▼             ▼
+                       📊 Live Backtest   📊 Proxy Backtest
+                       (backtester.py)    (proxy_backtest.py)
+                       Phase 5a           Phase 5b
+                       실전 검증           규칙 유효성 검증
+```
+
+---
+
+## File Structure
+
+```
+Stock_Alert/
+│
+├── stock_report.py          # 메인 오케스트레이터 (~170줄)
+├── config.py                # 모델, 설정, feature flags
+├── watchlist.txt            # 관심 종목 (한 줄에 하나)
+│
+├── ── 데이터 수집 ──
+├── data_fetcher.py          # yfinance 가격/지표/옵션 수집
+├── market_calendar.py       # NYSE 휴장일 체크
+│
+├── ── Claude 분석 ──
+├── analyzer.py              # Claude API 호출 (web search 포함)
+├── prompts.py               # 프롬프트 템플릿 (한국어/영어)
+│
+├── ── 출력 채널 ──
+├── email_builder.py         # HTML 이메일 생성
+├── email_sender.py          # Gmail SMTP 발송
+├── discord_notifier.py      # Discord webhook 알림 (Phase 2)
+├── summary_builder.py       # report_summary.json 생성 (Phase 1)
+│
+├── ── 검증 ──
+├── polymarket_client.py     # Polymarket 방향성 대조 (Phase 3)
+├── backtester.py            # Live walk-forward 백테스트 (Phase 5a)
+├── proxy_backtest.py        # Proxy 규칙 백테스트 (Phase 5b)
+│
+├── ── 추적 ──
+├── usage_tracker.py         # API 토큰/비용 추적
+├── usage_log.json           # 월간 비용 누적 (자동 생성)
+├── report_summaries/        # 일일 JSON 요약 (자동 생성, git commit)
+├── backtest_results/        # 백테스트 결과 (자동 생성)
+│
+├── ── 인프라 ──
+├── requirements.txt
+├── .env / .env.example
+├── .gitignore
+├── README.md
+├── CLAUDE.md                # Claude Code 작업 규칙
+├── tasks/todo.md            # 프로젝트 할일
+│
+└── .github/workflows/
+    ├── daily_stock_report.yml  # 매일 리포트 (외부 트리거)
+    └── check_dst.yml           # DST 자동 조정
+```
+
+---
+
+## Data Flow
+
+```
+watchlist.txt
+    │
+    ▼
+┌──────────────────┐    ┌──────────────────┐
+│  data_fetcher.py │    │   yfinance API   │
+│  - 가격/지표     │◄───│   (무료)         │
+│  - 옵션 OI       │    └──────────────────┘
+│  - 스윙 후보     │
+│  - 지지/저항     │
+│  - 매물대        │
+└────────┬─────────┘
+         │ stock_data dict
+         ▼
+┌──────────────────┐    ┌──────────────────┐
+│   analyzer.py    │───▶│  Claude API      │
+│   prompts.py     │    │  + web search    │
+│                  │◄───│  (Sonnet 4.6)    │
+└────────┬─────────┘    └──────────────────┘
+         │ analysis_text (markdown + JSON block)
+         │
+         ├───▶ email_builder.py ───▶ 📧 Gmail (상세 리포트)
+         │
+         ├───▶ summary_builder.py ───▶ 📋 report_summaries/YYYY-MM-DD.json
+         │                                    │
+         │                                    ├───▶ discord_notifier.py ───▶ 💬 Discord
+         │                                    │
+         │                                    ├───▶ polymarket_client.py ───▶ 🔮 방향 대조
+         │                                    │
+         │                                    └───▶ backtester.py ───▶ 📊 성과 검증
+         │
+         └───▶ usage_tracker.py ───▶ 💰 비용 추적
+```
+
+---
+
+## Feature Flags (config.py)
+
+```python
+ENABLE_EMAIL_REPORT = True       # 📧 이메일 리포트
+ENABLE_SUMMARY_JSON = True       # 📋 JSON 요약 저장 (다른 기능의 기반)
+ENABLE_DISCORD_DIGEST = True     # 💬 Discord 아침 요약
+ENABLE_POLYMARKET = False        # 🔮 Polymarket 방향 대조
+ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
+```
+
+**의존성 관계:**
+- Discord, Polymarket, Backtest 모두 `ENABLE_SUMMARY_JSON = True`가 전제
+- 각 기능은 독립적으로 on/off 가능
+- Polymarket은 관련 시장이 없으면 자동 N/A
+
+---
+
+## Phase 구현 현황
+
+| Phase | 기능 | 파일 | 상태 | API 비용 |
+|-------|------|------|------|----------|
+| 0 | 기본 리포트 (분석 + 이메일) | stock_report.py 외 | ✅ 운영중 | ~$0.50/일 |
+| 1 | report_summary.json 저장 | summary_builder.py | ✅ 완료 | $0 추가 |
+| 2 | Discord 아침 요약 | discord_notifier.py | ✅ 완료 | $0 |
+| 3 | Polymarket 방향 대조 | polymarket_client.py | ✅ 완료 | $0 (공개 API) |
+| 5a | Live walk-forward 백테스트 | backtester.py | ✅ 완료 | $0 |
+| 5b | Proxy 규칙 백테스트 | proxy_backtest.py | ✅ 완료 | $0 |
+
+---
+
+## 비용 구조
+
+| 항목 | 일일 비용 | 월간 비용 |
+|------|-----------|-----------|
+| Claude API (Sonnet 4.6, 5종목) | ~$0.40-0.60 | ~$9-13 |
+| GitHub Actions | 무료 | 무료 |
+| yfinance | 무료 | 무료 |
+| Gmail SMTP | 무료 | 무료 |
+| Discord webhook | 무료 | 무료 |
+| Polymarket API | 무료 | 무료 |
+| cron-job.org | 무료 | 무료 |
+| Backtest (yfinance only) | 무료 | 무료 |
+| **총계** | **~$0.50** | **~$11** |
+
+---
+
+## 백테스트 전략
+
+### Live Walk-Forward (Phase 5a) — `backtester.py`
+- **질문:** "Claude 추천이 실제로 먹혔나?"
+- **방법:** 매일 저장된 JSON의 진입/손절가 vs 이후 실제 가격
+- **실행:** `python backtester.py` (데이터 쌓인 후)
+- **지표:** Win rate, Profit Factor, R-Multiple, MFE, MDD
+
+### Proxy Walk-Forward (Phase 5b) — `proxy_backtest.py`
+- **질문:** "Claude에게 주는 기술지표 조합이 유효한가?"
+- **방법:** 규칙을 고정하고 과거 데이터를 walk-forward
+- **실행:** `python proxy_backtest.py MSFT --years 2`
+- **주의:** 규칙을 결과 보고 조정하면 overfitting. FIXED RULES 유지
+
+---
+
+## 셋업 가이드
+
+### 필수 환경변수
+```
+ANTHROPIC_API_KEY=sk-ant-...
+GMAIL_ADDRESS=your@gmail.com
+GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+RECIPIENT_EMAIL=your@gmail.com
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+```
+
+### Discord Webhook 설정
+1. Discord 서버 → 채널 설정 → 연동 → 웹후크
+2. 새 웹후크 만들기 → URL 복사
+3. GitHub Secrets에 `DISCORD_WEBHOOK_URL` 추가
+
+### 실행 순서
+```bash
+# 1. 일일 리포트 (매일 자동, 수동 테스트도 가능)
+python stock_report.py
+
+# 2. Proxy 백테스트 (언제든 실행 가능)
+python proxy_backtest.py MSFT --years 2
+python proxy_backtest.py ALL
+
+# 3. Live 백테스트 (JSON 쌓인 후)
+python backtester.py --days 30
+```

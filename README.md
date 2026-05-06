@@ -1,199 +1,285 @@
-# 📈 Daily Stock Analysis Report System
+# Stock Alert
 
-Automatically analyzes your watchlist stocks with **news collection + technical chart analysis + options/liquidity analysis + entry/stop-loss recommendations** and sends a daily email report.
+Daily stock analysis pipeline for a personal watchlist.
+
+The system collects market data, asks Claude for a detailed analysis, sends a full email report, saves a machine-readable JSON summary, optionally sends a Discord digest, optionally compares direction with Polymarket, and keeps the JSON history needed for later live backtesting.
+
+> This is an analysis and journaling tool, not financial advice.
+
+---
+
+## Current Pipeline
+
+```text
+cron-job.org or manual workflow_dispatch
+    |
+    v
+GitHub Actions
+    |
+    v
+stock_report.py
+    |
+    +-- market_calendar.py       skip non-trading days
+    +-- watchlist.txt            load tickers
+    +-- data_fetcher.py          yfinance price, indicators, options data
+    +-- analyzer.py/prompts.py   Claude detailed report + JSON block
+    +-- email_builder.py         full HTML email
+    +-- email_sender.py          Gmail SMTP
+    +-- summary_builder.py       report_summaries/YYYY-MM-DD.json
+    +-- discord_notifier.py      compact Discord digest
+    +-- polymarket_client.py     optional market direction check
+    +-- usage_tracker.py         usage_log.json
+```
+
+The daily GitHub Action commits:
+
+- `usage_log.json`
+- `report_summaries/`
+
+That means the saved JSON summaries remain in the repository and can later be used by `backtester.py`.
+
+`backtest_results/` is ignored by Git and is not committed by the daily workflow. Backtest result files are local/manual output unless you intentionally change that policy.
 
 ---
 
 ## Features
 
-- **News Collection**: Collects latest news via Claude API web search
-- **Technical Analysis**: RSI, MACD, Bollinger Bands, SMA (20/50/200), Stochastic, ATR, Support/Resistance
-- **Fibonacci Analysis**: Auto-calculated retracement levels fed to Claude for interpretation
-- **Volume Profile**: Identifies price zones with concentrated trading volume (120-day)
-- **Options & Liquidity Analysis**: Options OI, Max Pain, Put/Call Ratio, Short Interest (via web search), Liquidity Sweep risk assessment
-- **Entry/Stop-Loss Recommendations**: 1st, 2nd, 3rd entry and stop-loss prices with rationale
-- **API Cost Tracking**: Per-ticker and monthly cumulative cost displayed in every email
-- **Market Holiday Detection**: Automatically skips weekends and NYSE holidays
-- **Multi-language Support**: Korean (default) or English reports
+- Detailed email report with news, technicals, options/liquidity, entries, stops, and rationale.
+- Machine-readable JSON summary per ticker for automation and backtesting.
+- Discord morning digest for fast mobile review.
+- Optional Polymarket direction comparison.
+- API usage and monthly cost tracking.
+- NYSE holiday/weekend skip logic.
+- Live walk-forward backtest using actual saved Claude recommendations.
+- Proxy backtest using fixed technical rules without Claude API calls.
 
 ---
 
-## 🏗️ Architecture
+## Project Structure
 
-```
-Watchlist (watchlist.txt)
-    ↓
-⓪ Check if NYSE is open today (skip holidays)
-    ↓
-① Collect price data, technical indicators & options chain via yfinance
-    ↓
-② Analyze via Claude API (Sonnet 4.6 + web search)
-   — News, short interest, technical + options + liquidity sweep analysis
-    ↓
-③ Generate HTML email with usage cost summary
-    ↓
-④ Send via Gmail SMTP
-    ↓
-⑤ Auto-run daily at 9 AM ET via cron-job.org → GitHub Actions
-```
-
----
-
-## 📁 Project Structure
-
-```
+```text
 Stock_Alert/
-├── stock_report.py              # Main orchestrator (~100 lines)
-├── config.py                   # Models, pricing, settings (single source of truth)
-├── data_fetcher.py              # yfinance data collection + options chain
-├── analyzer.py                 # Claude API call (no internal retry)
-├── prompts.py                  # Prompt templates (Korean & English)
-├── email_builder.py             # HTML generation + markdown conversion
+├── stock_report.py              # Main daily orchestrator
+├── config.py                    # Model, timezone, feature flags
+├── watchlist.txt                # One ticker per line
+├── data_fetcher.py              # yfinance data and indicators
+├── market_calendar.py           # NYSE open/closed check
+├── analyzer.py                  # Claude API call
+├── prompts.py                   # Korean/English prompt templates
+├── email_builder.py             # HTML report generation
 ├── email_sender.py              # Gmail SMTP
-├── usage_tracker.py             # Token/cost tracking + monthly persistence
-├── market_calendar.py           # NYSE holiday detection
-├── watchlist.txt               # Your stock tickers (one per line)
-├── usage_log.json              # Monthly cost log (auto-generated, committed by CI)
-├── requirements.txt            # Python dependencies
-├── .env                        # Environment variables (gitignored)
-├── .github/
-│   └── workflows/
-│       ├── daily_stock_report.yml  # Daily report (triggered externally)
-│       └── check_dst.yml           # Weekly DST check
-├── OldCodes/                # Old Codes
+├── summary_builder.py           # Extracts Claude JSON summary
+├── discord_notifier.py          # Discord webhook digest
+├── polymarket_client.py         # Optional Polymarket direction check
+├── backtester.py                # Live walk-forward backtest
+├── proxy_backtest.py            # Fixed-rule proxy backtest
+├── usage_tracker.py             # Token/cost tracking
+├── report_summaries/            # Daily JSON summaries, committed by CI
+├── backtest_results/            # Manual backtest outputs
+├── .github/workflows/
+│   └── daily_stock_report.yml   # Manual/external-trigger daily report
+├── architecture.md              # System design notes
 └── README.md
 ```
 
 ---
 
-## 🚀 Setup
+## Feature Flags
 
-### Step 1: Prepare API Keys
-
-| Item | How to Get |
-|------|-----------|
-| **Anthropic API Key** | [console.anthropic.com](https://console.anthropic.com) → Sign up → API Keys |
-| **Gmail App Password** | Google Account → Security → 2-Step Verification → App Passwords |
-
-### Step 2: GitHub Repository Setup
-
-1. Create a new **private** repository on GitHub
-2. Push all project files
-3. Go to **Settings → Secrets and variables → Actions** and add these 4 secrets:
-   - `ANTHROPIC_API_KEY`
-   - `GMAIL_ADDRESS`
-   - `GMAIL_APP_PASSWORD`
-   - `RECIPIENT_EMAIL`
-
-### Step 3: Edit Your Watchlist
-
-Edit `watchlist.txt` — one ticker per line, `#` for comments:
-
-```
-MSFT    # Microsoft
-NVDA    # NVIDIA
-TSLA    # Tesla
-```
-
-### Step 4: Choose Your Model (Optional)
-
-Edit `config.py` to change the Claude model:
+Edit `config.py`:
 
 ```python
-# Recommended (best price/performance)
-CLAUDE_MODEL = "claude-sonnet-4-6"          # $3/$15 per MTok
-
-# Highest quality (costs ~3x more)
-# CLAUDE_MODEL = "claude-opus-4-7"          # $5/$25 per MTok
-
-# Cheapest
-# CLAUDE_MODEL = "claude-haiku-4-5-20251001" # $1/$5 per MTok
+ENABLE_EMAIL_REPORT = True       # Full HTML email
+ENABLE_SUMMARY_JSON = True       # Required for Discord/backtesting history
+ENABLE_DISCORD_DIGEST = True     # Compact Discord digest
+ENABLE_POLYMARKET = False        # Optional prediction-market comparison
+ENABLE_BACKTEST_EXPORT = False   # Reserved; backtests are currently manual
 ```
 
-### Step 5: Language Setting (Optional)
+Recommended defaults:
 
-In `config.py`:
+- Keep `ENABLE_SUMMARY_JSON = True` so GitHub Actions accumulates backtestable history.
+- Keep `ENABLE_POLYMARKET = False` until you are comfortable with the matching quality.
+- Use `ENABLE_DISCORD_DIGEST = True` only after adding `DISCORD_WEBHOOK_URL`.
 
-```python
-REPORT_LANGUAGE = "ko"   # "ko" (Korean, default) or "en" (English)
+---
+
+## Setup
+
+### 1. Required Secrets
+
+Add these in GitHub repository settings under `Secrets and variables -> Actions`:
+
+```text
+ANTHROPIC_API_KEY
+GMAIL_ADDRESS
+GMAIL_APP_PASSWORD
+RECIPIENT_EMAIL
 ```
 
-### Step 6: Set Up External Trigger (cron-job.org)
+Optional:
 
-GitHub Actions' built-in cron is unreliable (15–60 min delays). Use [cron-job.org](https://cron-job.org) (free) for precise timing:
+```text
+DISCORD_WEBHOOK_URL
+```
 
-1. Create a free account at cron-job.org
-2. Create a **GitHub Personal Access Token** (Fine-grained, Actions: Read & Write)
-3. Create a cron job with these settings:
+### 2. GitHub Actions Permission
 
-| Setting | Value |
-|---------|-------|
-| URL | `https://api.github.com/repos/YOUR_USERNAME/Stock_Alert/actions/workflows/daily_stock_report.yml/dispatches` |
-| Schedule | Weekdays 9:00 AM |
-| Time Zone | `America/New_York` |
-| Method | POST |
-| Request Body | `{"ref": "main"}` |
+The workflow needs repository write access because it commits `usage_log.json` and `report_summaries/`.
 
-**Headers:**
+The workflow declares:
 
-| Key | Value |
-|-----|-------|
-| Accept | `application/vnd.github.v3+json` |
-| Authorization | `Bearer YOUR_GITHUB_PAT` |
-| Content-Type | `application/json` |
+```yaml
+permissions:
+  contents: write
+```
 
-> **Note:** cron-job.org handles DST automatically when set to `America/New_York`, so the `check_dst.yml` workflow serves as a backup safety net.
+If repository-level workflow permissions are restricted, set Actions to allow read/write permissions in GitHub settings.
 
-### Step 7: Local Testing (Optional)
+### 3. Watchlist
 
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+Edit `watchlist.txt`:
 
-# Install dependencies
+```text
+MSFT
+NVDA
+TSLA
+```
+
+### 4. Local Environment
+
+On Windows in this workspace, the plain `python.exe` may be a WindowsApps stub. The verified local command is:
+
+```powershell
+uv run --python 3.12 --with-requirements requirements.txt python stock_report.py
+```
+
+If your normal Python install is on PATH, this also works:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
 pip install -r requirements.txt
-
-# Create .env file
-cp .env.example .env
-# Edit .env with your actual values
-
-# Run
 python stock_report.py
 ```
 
 ---
 
-## 🕐 Scheduling & DST
+## Daily Run
 
-| Method | How It Works |
-|--------|-------------|
-| **cron-job.org (primary)** | Set timezone to `America/New_York` → auto-handles DST |
-| **check_dst.yml (backup)** | Runs weekly to adjust GitHub Actions cron if still enabled |
-| **Market holiday check** | `market_calendar.py` skips NYSE holidays automatically |
+The workflow is manual by default:
+
+```yaml
+on:
+  workflow_dispatch:
+```
+
+For precise daily timing, use cron-job.org to call GitHub's workflow dispatch endpoint at 9:00 AM America/New_York on trading days. `stock_report.py` still checks the NYSE calendar, so a mistaken trigger on a holiday exits without sending a report.
 
 ---
 
-## 💰 Cost
+## JSON Summary Persistence
 
-### API Pricing (per million tokens)
+Every successful daily run with `ENABLE_SUMMARY_JSON = True` creates:
 
-| Model | Input | Output | Recommended For |
-|-------|-------|--------|-----------------|
-| Sonnet 4.6 | $3.00 | $15.00 | Daily reports (default) |
-| Opus 4.7 | $5.00 | $25.00 | Highest analysis quality |
-| Haiku 4.5 | $1.00 | $5.00 | Budget / high volume |
+```text
+report_summaries/YYYY-MM-DD.json
+```
 
-### Estimated Daily Cost (Sonnet 4.6, 5 stocks)
+The GitHub Action stages and commits that folder:
 
-| Item | Cost |
-|------|------|
-| GitHub Actions | Free (2,000 min/month) |
-| yfinance | Free |
-| Gmail SMTP | Free |
-| cron-job.org | Free |
-| Claude API | ~$0.08–0.12 per stock |
-| **Daily Total** | **~$0.40–0.60** |
-| **Monthly Total (~22 trading days)** | **~$9–13** |
+```bash
+git add usage_log.json || true
+git add report_summaries/ || true
+git diff --staged --quiet || git commit -m "Update logs $(date +%Y-%m-%d)"
+git push
+```
 
-> Every email includes a cost breakdown table showing per-ticker token usage and monthly cumulative spend.
+This is the historical dataset for `backtester.py`.
+
+---
+
+## Backtesting
+
+### Live Walk-Forward Backtest
+
+Question: did Claude's actual saved recommendations work?
+
+```powershell
+uv run --python 3.12 --with-requirements requirements.txt python backtester.py --days 30
+```
+
+Uses `report_summaries/*.json`, then checks later OHLC price action.
+
+Important detail: if stop and target both touch inside the same daily candle, the trade is marked:
+
+```text
+ambiguous_same_day
+```
+
+The result uses a conservative stop exit price, but the ambiguity is counted separately.
+
+### Proxy Backtest
+
+Question: are the fixed technical rules we feed Claude historically useful?
+
+```powershell
+uv run --python 3.12 --with-requirements requirements.txt python proxy_backtest.py MSFT --years 2
+uv run --python 3.12 --with-requirements requirements.txt python proxy_backtest.py ALL
+```
+
+Do not tune proxy rules after looking at results unless you explicitly start a new validation split. Otherwise the test becomes overfit.
+
+---
+
+## Polymarket Notes
+
+Polymarket is optional and disabled by default.
+
+The client now tries to infer whether a YES price is bullish or bearish from the question wording:
+
+- `above`, `over`, `higher`, `rise`, `gain` -> bullish YES
+- `below`, `under`, `fall`, `drop`, `decline` -> bearish YES
+- unclear wording -> `unknown`
+
+Treat this as a secondary sanity check, not a trading signal.
+
+---
+
+## Cost
+
+Expected daily cost is mostly Claude API usage. yfinance, Gmail SMTP, GitHub Actions, Discord webhook, cron-job.org, and Polymarket read-only queries are free for this use case.
+
+For a 5-stock watchlist using the default Sonnet model, the rough target is:
+
+```text
+Daily:   about $0.40-$0.60
+Monthly: about $9-$13 on trading days
+```
+
+Each run updates `usage_log.json`.
+
+---
+
+## Verification
+
+Syntax verification used for this project:
+
+```powershell
+uv run --python 3.12 --with-requirements requirements.txt python -m py_compile stock_report.py backtester.py summary_builder.py discord_notifier.py polymarket_client.py proxy_backtest.py
+```
+
+Targeted checks should cover:
+
+- summary JSON parse failure produces `summary_parse_status = failed`
+- Polymarket below/under questions invert YES into bearish
+- live/proxy backtests mark same-day stop/target hits as `ambiguous_same_day`
+
+---
+
+## Known Design Choices
+
+- Daily CI commits summary JSON, not backtest result JSON.
+- Backtests are manual so the daily report stays fast and predictable.
+- `ENABLE_BACKTEST_EXPORT` is currently reserved and not wired into the daily orchestrator.
+- Daily OHLC data cannot prove intraday ordering, so ambiguous same-day outcomes are explicitly labeled.
