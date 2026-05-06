@@ -1,0 +1,49 @@
+{
+  "2026-05": {
+    "2026-05-06": {
+      "tickers_analyzed": 4,
+      "total_calls": 4,
+      "analysis_calls": 4,
+      "review_calls": 0,
+      "input_tokens": 243423,
+      "output_tokens": 26652,
+      "web_searches": 12,
+      "cost_usd": 1.25,
+      "model": "claude-sonnet-4-6",
+      "calls": [
+        {
+          "ticker": "IREN",
+          "call_type": "analysis",
+          "input_tokens": 54284,
+          "output_tokens": 7216,
+          "web_searches": 3,
+          "cost_usd": 0.3011
+        },
+        {
+          "ticker": "ORCL",
+          "call_type": "analysis",
+          "input_tokens": 58596,
+          "output_tokens": 6413,
+          "web_searches": 3,
+          "cost_usd": 0.302
+        },
+        {
+          "ticker": "ONDS",
+          "call_type": "analysis",
+          "input_tokens": 62688,
+          "output_tokens": 6790,
+          "web_searches": 3,
+          "cost_usd": 0.3199
+        },
+        {
+          "ticker": "SMR",
+          "call_type": "analysis",
+          "input_tokens": 67855,
+          "output_tokens": 6233,
+          "web_searches": 3,
+          "cost_usd": 0.3271
+        }
+      ]
+    }
+  }
+}
