@@ -228,6 +228,13 @@ R = entry - stop
 
 Bearish avoidance metrics answer a different question: did staying out avoid a loss, or did it miss upside?
 
+Benchmark and risk context:
+
+- Each evaluation includes same-window `SPY` and `QQQ` returns when yfinance has data.
+- Long trades include `excess_vs_benchmark_pct`, which is trade P&L minus benchmark return.
+- Bearish avoidance includes `ticker_vs_benchmark_pct`; negative values mean the avoided ticker underperformed that benchmark.
+- Long trades include a `risk` object with `risk_pct_to_stop`, `target_pct`, and `target_r_multiple`.
+
 Important detail: if stop and target both touch inside the same daily candle, the trade is marked:
 
 ```text
@@ -253,6 +260,8 @@ Proxy backtest cleanup:
 - `bullish` signals are evaluated as long trades with ATR-based stops and targets.
 - `bearish` signals are evaluated as long avoidance / risk warning, not short trades.
 - The proxy target is now `entry + ATR * 2.0` for bullish trades instead of a fixed 3% target.
+- Proxy long trades also store `atr_14` and risk fields, including `atr_to_stop`.
+- Proxy metrics include average long excess return versus SPY/QQQ and bearish underperformance rates versus SPY/QQQ when benchmark data is available.
 
 ---
 
@@ -317,6 +326,8 @@ Targeted checks should cover:
 - live/proxy backtests mark same-day stop/target hits as `ambiguous_same_day`
 - bearish backtest signals are evaluated as long avoidance, not short P&L
 - proxy cooldown and ATR target parameters are present in saved metrics
+- live/proxy benchmark metrics calculate SPY/QQQ comparison fields without changing trade outcomes
+- risk structure fields are present on long-trade evaluations
 
 ---
 

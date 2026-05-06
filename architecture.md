@@ -187,6 +187,8 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **지표:** Win rate, Profit Factor, R-Multiple, MFE, MDD
 - **의미:** `bullish`만 롱 트레이드로 평가하고, `bearish`는 숏이 아니라 롱 회피/위험 경고로 평가
 - **타겟:** bullish live target은 고정 3%가 아니라 저장된 stop 거리 기준 `entry + 2R`
+- **벤치마크:** 같은 평가 창의 SPY/QQQ 수익률을 붙여 long excess return과 bearish underperformance를 확인
+- **리스크:** 롱 평가에는 stop까지의 위험률, target 수익률, target R-multiple을 저장
 
 ### Proxy Walk-Forward (Phase 5b) — `proxy_backtest.py`
 - **질문:** "Claude에게 주는 기술지표 조합이 유효한가?"
@@ -195,6 +197,7 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **주의:** 규칙을 결과 보고 조정하면 overfitting. FIXED RULES 유지
 - **쿨다운:** 한 추세 구간이 매일 독립 신호로 중복 집계되지 않도록 `HOLDING_DAYS`만큼 cooldown 적용
 - **타겟:** bullish proxy target은 고정 3%가 아니라 `entry + ATR * 2.0`
+- **벤치마크/리스크:** SPY/QQQ excess/underperformance와 ATR 기반 risk structure를 함께 저장
 
 ---
 

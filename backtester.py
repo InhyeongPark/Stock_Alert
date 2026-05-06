@@ -44,6 +44,7 @@ TARGET_R_MULTIPLE = 2.0  # Bullish target = entry + 2R, where R is entry-stop ri
 AMBIGUOUS_EXIT_POLICY = "conservative_stop"
 LONG_TRADE = "long_trade"
 LONG_AVOIDANCE = "long_avoidance"
+BENCHMARK_TICKERS = ("SPY", "QQQ")
 
 
 def run_backtest(lookback_days: int = None):
@@ -115,6 +116,8 @@ def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
         log.warning(f"⚠️ {ticker}: price fetch failed for backtest: {e}")
         return []
 
+    benchmark_returns = _fetch_benchmark_returns(start, end, len(actual_prices))
+
     if direction == "bearish":
         reference_price = _safe_float(summary.get("current_price"))
         if reference_price is None:
@@ -127,6 +130,7 @@ def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
             signal_date=report_date,
             reference_price=reference_price,
             price_data=actual_prices,
+            benchmark_returns=benchmark_returns,
         )
         return [avoidance] if avoidance else []
 
@@ -148,6 +152,7 @@ def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
             entry_price=entry_price,
             stop_price=stop_price,
             price_data=actual_prices,
+            benchmark_returns=benchmark_returns,
         )
         if trade:
             trades.append(trade)
@@ -163,6 +168,7 @@ def _simulate_trade(
     entry_price: float,
     stop_price: float | None,
     price_data,
+    benchmark_returns: dict[str, float] | None = None,
 ) -> dict | None:
     """
     Simulate a bullish long entry and evaluate stop-loss and target outcomes.
@@ -176,6 +182,9 @@ def _simulate_trade(
             entry_date = date
             break
 
+    target_price = _target_from_stop(entry_price, stop_price)
+    risk = _risk_structure(entry_price, stop_price, target_price)
+
     if not entry_triggered:
         return {
             "ticker": ticker,
@@ -185,7 +194,10 @@ def _simulate_trade(
             "direction": direction,
             "entry_price": entry_price,
             "stop_price": stop_price,
-            "target_price": _round_or_none(_target_from_stop(entry_price, stop_price)),
+            "target_price": _round_or_none(target_price),
+            "risk": risk,
+            "benchmark_returns_pct": benchmark_returns or {},
+            "excess_vs_benchmark_pct": {},
             "entry_triggered": False,
             "outcome": "no_fill",
             "pnl_pct": 0,
@@ -195,7 +207,6 @@ def _simulate_trade(
 
     # Entry was triggered — evaluate subsequent price action
     post_entry = price_data.loc[entry_date:]
-    target_price = _target_from_stop(entry_price, stop_price)
 
     max_favorable = 0
     max_adverse = 0
@@ -236,10 +247,10 @@ def _simulate_trade(
     # R-multiple (if stop exists)
     r_multiple = None
     if stop_price:
-        risk = abs(entry_price - stop_price)
-        if risk > 0:
+        risk_amount = abs(entry_price - stop_price)
+        if risk_amount > 0:
             reward = exit_price - entry_price
-            r_multiple = round(reward / risk, 2)
+            r_multiple = _round_or_none(reward / risk_amount)
 
     return {
         "ticker": ticker,
@@ -250,13 +261,16 @@ def _simulate_trade(
         "entry_price": entry_price,
         "stop_price": stop_price,
         "target_price": _round_or_none(target_price),
+        "risk": risk,
+        "benchmark_returns_pct": benchmark_returns or {},
+        "excess_vs_benchmark_pct": _excess_returns(pnl_pct, benchmark_returns),
         "entry_triggered": True,
         "outcome": outcome,
         "ambiguous_exit_policy": AMBIGUOUS_EXIT_POLICY if outcome == "ambiguous_same_day" else None,
-        "exit_price": round(exit_price, 2),
-        "pnl_pct": round(pnl_pct, 2),
-        "mfe_pct": round(max_favorable, 2),
-        "mdd_pct": round(max_adverse, 2),
+        "exit_price": _round_or_none(exit_price),
+        "pnl_pct": _round_or_none(pnl_pct),
+        "mfe_pct": _round_or_none(max_favorable),
+        "mdd_pct": _round_or_none(max_adverse),
         "r_multiple": r_multiple,
     }
 
@@ -266,6 +280,7 @@ def _evaluate_long_avoidance(
     signal_date: str,
     reference_price: float,
     price_data,
+    benchmark_returns: dict[str, float] | None = None,
 ) -> dict | None:
     """
     Evaluate a bearish signal as a long-avoidance call.
@@ -301,13 +316,15 @@ def _evaluate_long_avoidance(
         "evaluation_type": LONG_AVOIDANCE,
         "direction": "bearish",
         "action": "avoid_long",
-        "reference_price": round(reference_price, 2),
-        "exit_price": round(exit_price, 2),
+        "reference_price": _round_or_none(reference_price),
+        "exit_price": _round_or_none(exit_price),
         "outcome": outcome,
-        "long_return_pct": round(long_return_pct, 2),
-        "avoided_return_pct": round(avoided_return_pct, 2),
-        "max_decline_pct": round(max_decline_pct, 2),
-        "max_runup_pct": round(max_runup_pct, 2),
+        "long_return_pct": _round_or_none(long_return_pct),
+        "avoided_return_pct": _round_or_none(avoided_return_pct),
+        "max_decline_pct": _round_or_none(max_decline_pct),
+        "max_runup_pct": _round_or_none(max_runup_pct),
+        "benchmark_returns_pct": benchmark_returns or {},
+        "ticker_vs_benchmark_pct": _ticker_vs_benchmark(long_return_pct, benchmark_returns),
     }
 
 
@@ -320,6 +337,31 @@ def _target_from_stop(entry_price: float, stop_price: float | None) -> float | N
         return None
 
     return entry_price + (risk * TARGET_R_MULTIPLE)
+
+
+def _risk_structure(
+    entry_price: float,
+    stop_price: float | None,
+    target_price: float | None,
+    atr: float | None = None,
+) -> dict:
+    risk_dollars = entry_price - stop_price if stop_price is not None else None
+    target_dollars = target_price - entry_price if target_price is not None else None
+
+    return {
+        "risk_pct_to_stop": _round_or_none(
+            risk_dollars / entry_price * 100 if risk_dollars and risk_dollars > 0 else None
+        ),
+        "target_pct": _round_or_none(
+            target_dollars / entry_price * 100 if target_dollars and target_dollars > 0 else None
+        ),
+        "target_r_multiple": _round_or_none(
+            target_dollars / risk_dollars
+            if risk_dollars and risk_dollars > 0 and target_dollars is not None
+            else None
+        ),
+        "atr_to_stop": _round_or_none(risk_dollars / atr if atr and risk_dollars and risk_dollars > 0 else None),
+    }
 
 
 def _hit_flags(row, stop_price: float | None, target_price: float | None) -> tuple[bool, bool]:
@@ -340,7 +382,89 @@ def _safe_float(value) -> float | None:
 
 
 def _round_or_none(value: float | None) -> float | None:
-    return round(value, 2) if value is not None else None
+    return round(float(value), 2) if value is not None else None
+
+
+def _fetch_benchmark_returns(start: datetime, end: datetime, holding_days: int) -> dict[str, float]:
+    returns = {}
+
+    for symbol in BENCHMARK_TICKERS:
+        try:
+            df = yf.Ticker(symbol).history(start=start, end=end)
+            pct = _window_return_pct(df.head(holding_days))
+            if pct is not None:
+                returns[symbol] = pct
+        except Exception as e:
+            log.warning(f"⚠️ {symbol}: benchmark fetch failed: {e}")
+
+    return returns
+
+
+def _window_return_pct(price_data) -> float | None:
+    if price_data.empty:
+        return None
+
+    start_price = _safe_float(price_data.iloc[0].get("Open"))
+    end_price = _safe_float(price_data.iloc[-1].get("Close"))
+    if start_price is None or end_price is None or start_price <= 0:
+        return None
+
+    return round((end_price - start_price) / start_price * 100, 2)
+
+
+def _excess_returns(pnl_pct: float, benchmark_returns: dict[str, float] | None) -> dict[str, float]:
+    if not benchmark_returns:
+        return {}
+
+    return {
+        symbol: _round_or_none(pnl_pct - benchmark_return)
+        for symbol, benchmark_return in benchmark_returns.items()
+    }
+
+
+def _ticker_vs_benchmark(long_return_pct: float, benchmark_returns: dict[str, float] | None) -> dict[str, float]:
+    if not benchmark_returns:
+        return {}
+
+    return {
+        symbol: _round_or_none(long_return_pct - benchmark_return)
+        for symbol, benchmark_return in benchmark_returns.items()
+    }
+
+
+def _avg_nested(records: list[dict], field: str) -> dict[str, float]:
+    totals = {}
+    counts = {}
+
+    for record in records:
+        values = record.get(field) or {}
+        for symbol, value in values.items():
+            totals[symbol] = totals.get(symbol, 0) + value
+            counts[symbol] = counts.get(symbol, 0) + 1
+
+    return {
+        symbol: _round_or_none(total / counts[symbol])
+        for symbol, total in totals.items()
+        if counts.get(symbol)
+    }
+
+
+def _underperformance_rates(records: list[dict], field: str) -> dict[str, float]:
+    totals = {}
+    underperformed = {}
+
+    for record in records:
+        values = record.get(field) or {}
+        for symbol, value in values.items():
+            totals[symbol] = totals.get(symbol, 0) + 1
+            if value < 0:
+                underperformed[symbol] = underperformed.get(symbol, 0) + 1
+
+    return {
+        symbol: round(underperformed.get(symbol, 0) / total * 100, 1)
+        for symbol, total in totals.items()
+        if total
+    }
 
 
 def _compute_metrics(records: list[dict]) -> dict:
@@ -387,6 +511,7 @@ def _compute_metrics(records: list[dict]) -> dict:
             "max_single_win_pct": round(max(t["pnl_pct"] for t in triggered), 2),
             "profit_factor": round(gross_profit / gross_loss, 2) if gross_loss > 0 else float("inf"),
             "avg_r_multiple": round(sum(r_multiples) / len(r_multiples), 2) if r_multiples else None,
+            "avg_excess_vs_benchmark_pct": _avg_nested(triggered, "excess_vs_benchmark_pct"),
             "stopped_count": len([t for t in triggered if t["outcome"] == "stopped"]),
             "target_count": len([t for t in triggered if t["outcome"] == "target"]),
             "ambiguous_same_day_count": len([t for t in triggered if t["outcome"] == "ambiguous_same_day"]),
@@ -404,6 +529,7 @@ def _compute_metrics(records: list[dict]) -> dict:
             "max_single_win_pct": None,
             "profit_factor": None,
             "avg_r_multiple": None,
+            "avg_excess_vs_benchmark_pct": {},
             "stopped_count": 0,
             "target_count": 0,
             "ambiguous_same_day_count": 0,
@@ -428,6 +554,8 @@ def _compute_metrics(records: list[dict]) -> dict:
                 sum(a["max_runup_pct"] for a in avoidance) / len(avoidance),
                 2,
             ),
+            "avg_ticker_vs_benchmark_pct": _avg_nested(avoidance, "ticker_vs_benchmark_pct"),
+            "benchmark_underperformance_rate": _underperformance_rates(avoidance, "ticker_vs_benchmark_pct"),
             "avoided_loss_count": len([a for a in avoidance if a["outcome"] == "avoided_loss"]),
             "missed_gain_count": len([a for a in avoidance if a["outcome"] == "missed_gain"]),
         })
@@ -439,6 +567,8 @@ def _compute_metrics(records: list[dict]) -> dict:
             "avg_avoided_return_pct": None,
             "avg_avoided_drawdown_pct": None,
             "avg_missed_upside_pct": None,
+            "avg_ticker_vs_benchmark_pct": {},
+            "benchmark_underperformance_rate": {},
             "avoided_loss_count": 0,
             "missed_gain_count": 0,
         })
@@ -463,6 +593,8 @@ def _print_report(metrics: dict, records: list[dict]):
         log.info(f"  Avg MFE: {metrics['avg_mfe_pct']}% | Avg MDD: {metrics['avg_mdd_pct']}%")
         log.info(f"  Profit Factor: {metrics['profit_factor']}")
         log.info(f"  Avg R-Multiple: {metrics.get('avg_r_multiple', 'N/A')}")
+        if metrics["avg_excess_vs_benchmark_pct"]:
+            log.info(f"  Avg excess vs benchmark: {metrics['avg_excess_vs_benchmark_pct']}")
         log.info(
             f"  Long outcomes: {metrics['target_count']} target / "
             f"{metrics['stopped_count']} stopped / "
@@ -474,6 +606,9 @@ def _print_report(metrics: dict, records: list[dict]):
         log.info(f"  Avg avoided return: {metrics['avg_avoided_return_pct']}%")
         log.info(f"  Avg avoided drawdown: {metrics['avg_avoided_drawdown_pct']}%")
         log.info(f"  Avg missed upside: {metrics['avg_missed_upside_pct']}%")
+        if metrics["avg_ticker_vs_benchmark_pct"]:
+            log.info(f"  Avg ticker vs benchmark: {metrics['avg_ticker_vs_benchmark_pct']}")
+            log.info(f"  Benchmark underperformance rate: {metrics['benchmark_underperformance_rate']}")
     log.info("=" * 60)
 
 
@@ -485,6 +620,7 @@ def _save_results(metrics: dict, records: list[dict]):
 
     result = {
         "run_date": today,
+        "benchmarks": list(BENCHMARK_TICKERS),
         "metrics": metrics,
         "evaluations": records,
     }
