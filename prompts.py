@@ -318,6 +318,27 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
 ## 🛑 손절 타이밍 (상세 근거)
 
 ## 💡 종합 의견
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 기계 판독용 요약 (반드시 마지막에 출력)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+분석 마지막에 아래 형식의 JSON 블록을 반드시 출력하세요.
+값은 위 분석 내용에서 추출하세요. 가격은 숫자만, 방향은 bullish/bearish/neutral 중 하나.
+
+```json
+{{
+  "ticker": "{ticker}",
+  "current_price": {price},
+  "entry_suitability": "매우적극/적극/중립/관망/위험 중 하나",
+  "direction": "bullish/bearish/neutral 중 하나",
+  "entry_prices": [1차진입가, 2차진입가, 3차진입가],
+  "stop_prices": [1차손절가, 2차손절가, 3차손절가],
+  "outlook_short": "단기 전망 한 줄",
+  "outlook_mid": "중기 전망 한 줄",
+  "outlook_long": "장기 전망 한 줄",
+  "key_reasons": ["핵심 근거 1", "핵심 근거 2", "핵심 근거 3"]
+}}
+```
 """
 
     else:
@@ -389,4 +410,25 @@ write a comprehensive analysis report.
 ## 🛑 Stop-Loss Timing (Detailed)
 
 ## 💡 Overall Opinion
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 Machine-Readable Summary (MUST output at the very end)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+At the end of your analysis, output a JSON block in exactly this format.
+Extract values from your analysis above. Prices as numbers only, direction as bullish/bearish/neutral.
+
+```json
+{{
+  "ticker": "{ticker}",
+  "current_price": {price},
+  "entry_suitability": "one of: highly aggressive/aggressive/neutral/watch & wait/risky",
+  "direction": "bullish/bearish/neutral",
+  "entry_prices": [1st_entry, 2nd_entry, 3rd_entry],
+  "stop_prices": [1st_stop, 2nd_stop, 3rd_stop],
+  "outlook_short": "one line short-term outlook",
+  "outlook_mid": "one line mid-term outlook",
+  "outlook_long": "one line long-term outlook",
+  "key_reasons": ["reason 1", "reason 2", "reason 3"]
+}}
+```
 """

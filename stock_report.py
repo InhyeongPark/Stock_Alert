@@ -36,6 +36,10 @@ from config import (
     MAX_RETRIES,
     RETRY_DELAY_SECONDS,
     TICKER_DELAY_SECONDS,
+    ENABLE_EMAIL_REPORT,
+    ENABLE_SUMMARY_JSON,
+    ENABLE_DISCORD_DIGEST,
+    ENABLE_POLYMARKET,
 )
 from market_calendar import is_market_open_today
 from data_fetcher import load_watchlist, fetch_stock_data
@@ -43,6 +47,9 @@ from analyzer import analyze_with_claude
 from email_builder import build_email_html
 from email_sender import send_email
 from usage_tracker import UsageTracker
+from summary_builder import extract_summary_from_analysis, save_daily_summary
+from discord_notifier import send_discord_digest
+from polymarket_client import search_polymarket, compare_directions
 
 
 def main():
@@ -67,6 +74,7 @@ def main():
     # Step 2: Fetch + Analyze each ticker (with unified retry) 
     tracker = UsageTracker()
     analyses: list[tuple[dict, str]] = []
+    summaries: list[dict] = []
     failed_tickers: list[str] = []
 
     for i, ticker in enumerate(watchlist):
@@ -90,6 +98,15 @@ def main():
                     break  # non-retryable failure (e.g., auth error)
 
                 analyses.append((stock_data, analysis))
+
+                if ENABLE_SUMMARY_JSON:
+                    summary = extract_summary_from_analysis(
+                        ticker=stock_data["ticker"],
+                        stock_data=stock_data,
+                        analysis_text=analysis,
+                    )
+                    summaries.append(summary)
+
                 success = True
                 log.info(f"{ticker}: done (attempt {attempt + 1})")
                 break
@@ -119,18 +136,58 @@ def main():
     usage_summary = tracker.get_summary()  # BEFORE save_daily to avoid double-counting
     tracker.save_daily()
 
-    # Step 4: Build HTML email
-    html = build_email_html(analyses, usage_summary)
-
-    # Save local copy
-    output_filename = f"report_{datetime.now(TZ).strftime('%Y%m%d_%H%M')}.html"
-    with open(output_filename, "w", encoding="utf-8") as f:
-        f.write(html)
-    log.info(f"Report saved to {output_filename}")
-
-    # Step 5: Send email
     analyzed_tickers = [sd["ticker"] for sd, _ in analyses]
-    send_email(html, analyzed_tickers)
+
+    # Step 4: Optional machine-readable summary, Polymarket enrichment, Discord digest
+    if ENABLE_SUMMARY_JSON:
+        if ENABLE_POLYMARKET:
+            stock_data_by_ticker = {sd["ticker"]: sd for sd, _ in analyses}
+            for summary in summaries:
+                ticker = summary.get("ticker", "?")
+                if summary.get("summary_parse_status") == "failed":
+                    log.warning(f"{ticker}: skipping Polymarket because summary JSON parse failed")
+                    continue
+
+                try:
+                    stock_data = stock_data_by_ticker.get(ticker, {})
+                    company_name = stock_data.get("company_name", ticker)
+                    polymarket_result = search_polymarket(ticker, company_name)
+                    comparison = compare_directions(
+                        summary.get("direction", "unknown"),
+                        polymarket_result,
+                    )
+                    summary["polymarket"] = polymarket_result
+                    summary["polymarket_comparison"] = comparison
+                except Exception as e:
+                    log.warning(f"{ticker}: Polymarket enrichment failed: {e}")
+                    summary["polymarket"] = {
+                        "available": False,
+                        "ticker": ticker,
+                        "reason": f"Polymarket enrichment failed: {e}",
+                    }
+
+        summary_path = save_daily_summary(summaries)
+        log.info(f"Summary JSON ready: {summary_path}")
+
+        if ENABLE_DISCORD_DIGEST:
+            if not send_discord_digest(summaries):
+                log.warning("Discord digest was not sent")
+    else:
+        log.info("Summary JSON disabled; skipping Discord and Polymarket integrations")
+
+    # Step 5: Optional detailed email report
+    if ENABLE_EMAIL_REPORT:
+        html = build_email_html(analyses, usage_summary)
+
+        # Save local copy
+        output_filename = f"report_{datetime.now(TZ).strftime('%Y%m%d_%H%M')}.html"
+        with open(output_filename, "w", encoding="utf-8") as f:
+            f.write(html)
+        log.info(f"Report saved to {output_filename}")
+
+        send_email(html, analyzed_tickers)
+    else:
+        log.info("Email report disabled")
 
     # Summary
     log.info("=" * 60)

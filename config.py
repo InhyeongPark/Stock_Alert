@@ -34,3 +34,10 @@ TICKER_DELAY_SECONDS = 45       # Wait between tickers to avoid rate limit
 # Market Calendar
 # ISO 10383 MIC code for NYSE (exchange_calendars standard)
 EXCHANGE_MIC = "XNYS"
+
+# ─── Feature Flags ───────────────────────────────────────────────
+ENABLE_EMAIL_REPORT = True
+ENABLE_SUMMARY_JSON = True       # Phase 1: save report_summary JSON
+ENABLE_DISCORD_DIGEST = True     # Phase 2: send compact digest to Discord
+ENABLE_POLYMARKET = True        # Phase 3: Polymarket direction validation
+ENABLE_BACKTEST_EXPORT = False   # Phase 5: backtesting data export
