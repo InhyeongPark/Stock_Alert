@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 
 GAMMA_API_BASE = "https://gamma-api.polymarket.com"
 MIN_LIQUIDITY = 1000  # Skip low-liquidity markets
+_ACCESS_BLOCK_REASON: str | None = None
 
 
 def search_polymarket(ticker: str, company_name: str) -> dict:
@@ -26,6 +27,14 @@ def search_polymarket(ticker: str, company_name: str) -> dict:
     Returns a dict with match info, or a 'not found' result.
     """
     log.info(f"🔮 {ticker}: searching Polymarket...")
+
+    if _ACCESS_BLOCK_REASON:
+        log.info(f"🔮 {ticker}: skipping Polymarket search ({_ACCESS_BLOCK_REASON})")
+        return {
+            "available": False,
+            "ticker": ticker,
+            "reason": _ACCESS_BLOCK_REASON,
+        }
 
     # Try multiple search queries for best coverage
     queries = [
@@ -39,6 +48,13 @@ def search_polymarket(ticker: str, company_name: str) -> dict:
 
     for query in queries:
         markets = _gamma_search(query)
+        if _ACCESS_BLOCK_REASON:
+            return {
+                "available": False,
+                "ticker": ticker,
+                "reason": _ACCESS_BLOCK_REASON,
+            }
+
         for market in markets:
             relevance = _score_relevance(market, ticker, company_name)
             if relevance > best_relevance:
@@ -58,25 +74,82 @@ def search_polymarket(ticker: str, company_name: str) -> dict:
 
 def _gamma_search(query: str, limit: int = 10) -> list[dict]:
     """Search Gamma API for active markets matching query."""
+    global _ACCESS_BLOCK_REASON
+
     params = urlencode({
-        "search": query,
-        "closed": "false",
-        "active": "true",
-        "limit": limit,
-        "order": "liquidity",
+        "q": query,
+        "events_status": "active",
+        "limit_per_type": limit,
+        "keep_closed_markets": 0,
+        "search_tags": "false",
+        "search_profiles": "false",
+        "sort": "liquidity",
         "ascending": "false",
     })
 
-    url = f"{GAMMA_API_BASE}/markets?{params}"
+    url = f"{GAMMA_API_BASE}/public-search?{params}"
 
     try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        req = urllib.request.Request(url, headers={
+            "Accept": "application/json",
+            "User-Agent": "Stock-Alert/1.0",
+        })
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
-            return data if isinstance(data, list) else []
+            return _extract_markets_from_search_results(data)
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            _ACCESS_BLOCK_REASON = "Polymarket API access blocked: HTTP 403 Forbidden"
+            log.warning(f"⚠️ {_ACCESS_BLOCK_REASON}; skipping remaining searches this run")
+        else:
+            body = e.read().decode(errors="replace")[:300]
+            log.warning(f"⚠️ Polymarket search failed for '{query}': HTTP {e.code} {body}")
+        return []
     except Exception as e:
         log.warning(f"⚠️ Polymarket search failed for '{query}': {e}")
         return []
+
+
+def _extract_markets_from_search_results(data) -> list[dict]:
+    if isinstance(data, list):
+        return [market for market in data if _is_active_market(market)]
+
+    if not isinstance(data, dict):
+        return []
+
+    markets_by_id: dict[str, dict] = {}
+
+    for market in data.get("markets") or []:
+        if _is_active_market(market):
+            market_id = str(market.get("id") or market.get("slug") or len(markets_by_id))
+            markets_by_id[market_id] = market
+
+    for event in data.get("events") or []:
+        if not isinstance(event, dict):
+            continue
+        event_context = {
+            "event_title": event.get("title", ""),
+            "event_subtitle": event.get("subtitle", ""),
+            "event_description": event.get("description", ""),
+        }
+        for market in event.get("markets") or []:
+            if not _is_active_market(market):
+                continue
+            enriched_market = {**event_context, **market}
+            market_id = str(enriched_market.get("id") or enriched_market.get("slug") or len(markets_by_id))
+            markets_by_id[market_id] = enriched_market
+
+    return list(markets_by_id.values())
+
+
+def _is_active_market(market) -> bool:
+    if not isinstance(market, dict):
+        return False
+    if market.get("active") is False:
+        return False
+    if market.get("closed") is True:
+        return False
+    return True
 
 
 def _score_relevance(market: dict, ticker: str, company_name: str) -> float:
@@ -84,7 +157,15 @@ def _score_relevance(market: dict, ticker: str, company_name: str) -> float:
     Score how relevant a Polymarket market is to our stock ticker.
     Returns 0.0 to 1.0.
     """
-    question = (market.get("question", "") + " " + market.get("description", "")).lower()
+    text_parts = [
+        market.get("question", ""),
+        market.get("title", ""),
+        market.get("description", ""),
+        market.get("event_title", ""),
+        market.get("event_subtitle", ""),
+        market.get("event_description", ""),
+    ]
+    question = " ".join(str(part) for part in text_parts if part).lower()
     ticker_lower = ticker.lower()
     company_lower = company_name.lower().split(",")[0].split("(")[0].strip()
 

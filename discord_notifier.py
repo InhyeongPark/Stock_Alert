@@ -22,6 +22,9 @@ from config import TZ
 
 log = logging.getLogger(__name__)
 
+DISCORD_MAX_EMBEDS_PER_MESSAGE = 10
+DISCORD_SAFE_EMBED_CHAR_BUDGET = 5500
+
 # Color mapping for Discord embeds
 DIRECTION_COLORS = {
     "bullish": 0x22C55E,       # green
@@ -70,14 +73,47 @@ def send_discord_digest(summaries: list[dict]) -> bool:
     if portfolio_line:
         content += f"\n{portfolio_line}"
 
-    # Discord allows max 10 embeds per message
-    payload = {
-        "content": _truncate(content, 2000),
-        "embeds": embeds[:10],
-    }
+    chunks = _chunk_embeds(embeds)
+    all_sent = True
 
+    for index, chunk in enumerate(chunks, start=1):
+        payload = {
+            "content": _truncate(_format_chunk_content(content, index, len(chunks)), 2000),
+            "embeds": chunk,
+            "allowed_mentions": {"parse": []},
+        }
+        label = f"chunk {index}/{len(chunks)}"
+        if _post_webhook(webhook_url, payload, label):
+            continue
+
+        if len(chunk) <= 1:
+            all_sent = False
+            continue
+
+        log.warning(f"Discord {label} failed; retrying its embeds one at a time")
+        chunk_sent = True
+        for single_index, embed in enumerate(chunk, start=1):
+            retry_payload = {
+                "content": _truncate(
+                    f"{_format_chunk_content(content, index, len(chunks))}\nRetry {single_index}/{len(chunk)}",
+                    2000,
+                ),
+                "embeds": [embed],
+                "allowed_mentions": {"parse": []},
+            }
+            if not _post_webhook(webhook_url, retry_payload, f"{label} retry {single_index}/{len(chunk)}"):
+                chunk_sent = False
+        if not chunk_sent:
+            all_sent = False
+
+    if all_sent:
+        log.info(f"✅ Discord digest sent ({len(embeds)} tickers, {len(chunks)} message(s))")
+    return all_sent
+
+
+def _post_webhook(webhook_url: str, payload: dict, label: str) -> bool:
     try:
-        data = json.dumps(payload).encode("utf-8")
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req = urllib.request.Request(
             webhook_url,
             data=data,
@@ -89,17 +125,64 @@ def send_discord_digest(summaries: list[dict]) -> bool:
         )
         with urllib.request.urlopen(req, timeout=15) as resp:
             if resp.status in (200, 204):
-                log.info(f"✅ Discord digest sent ({len(embeds)} tickers)")
                 return True
-            else:
-                log.error(f"❌ Discord returned status {resp.status}")
-                return False
+            log.error(f"❌ Discord returned status {resp.status} for {label}")
+            return False
     except urllib.error.HTTPError as e:
-        log.error(f"❌ Discord webhook failed: {e.code} — {e.read().decode()}")
+        body = e.read().decode(errors="replace")
+        log.error(f"❌ Discord webhook failed for {label}: {e.code} — {body}")
         return False
     except Exception as e:
-        log.error(f"❌ Discord send error: {e}")
+        log.error(f"❌ Discord send error for {label}: {e}")
         return False
+
+
+def _chunk_embeds(embeds: list[dict]) -> list[list[dict]]:
+    chunks: list[list[dict]] = []
+    current: list[dict] = []
+    current_chars = 0
+
+    for embed in embeds:
+        embed_chars = _embed_character_count(embed)
+        if current and (
+            len(current) >= DISCORD_MAX_EMBEDS_PER_MESSAGE
+            or current_chars + embed_chars > DISCORD_SAFE_EMBED_CHAR_BUDGET
+        ):
+            chunks.append(current)
+            current = []
+            current_chars = 0
+
+        current.append(embed)
+        current_chars += embed_chars
+
+    if current:
+        chunks.append(current)
+
+    return chunks
+
+
+def _embed_character_count(embed: dict) -> int:
+    total = 0
+    for key in ("title", "description"):
+        total += len(str(embed.get(key, "") or ""))
+
+    footer = embed.get("footer") or {}
+    total += len(str(footer.get("text", "") or ""))
+
+    author = embed.get("author") or {}
+    total += len(str(author.get("name", "") or ""))
+
+    for field in embed.get("fields") or []:
+        total += len(str(field.get("name", "") or ""))
+        total += len(str(field.get("value", "") or ""))
+
+    return total
+
+
+def _format_chunk_content(content: str, index: int, total: int) -> str:
+    if total <= 1:
+        return content
+    return f"{content}\nPart {index}/{total}"
 
 
 def _build_embed(summary: dict) -> dict | None:
