@@ -9,6 +9,9 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+permissions:
+  contents: write
+
 jobs:
   send-report:
     runs-on: ubuntu-latest
@@ -35,12 +38,14 @@ jobs:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python stock_report.py
 
-      - name: Commit usage log
+      - name: Commit usage log and summaries
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add usage_log.json || true
-          git diff --staged --quiet || git commit -m "Update usage log $(date +%Y-%m-%d)"
-          git push || true
+          git add report_summaries/ || true
+          git diff --staged --quiet || git commit -m "Update logs $(date +%Y-%m-%d)"
+          git push

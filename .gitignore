@@ -33,6 +33,7 @@ htmlcov/
 
 # Generated Reports
 report_*.html
+backtest_results/
 
 # Tasks
 tasks/
