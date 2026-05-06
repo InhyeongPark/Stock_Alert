@@ -13,13 +13,15 @@ Usage:
     python backtester.py --days 30    # last 30 days only
 
 Metrics computed per ticker and overall:
-    - Entry hit rate: did price reach recommended entry?
-    - Stop hit rate: did price hit stop-loss before target?
-    - Win rate: entries that reached +ATR or +3% before stop
+    - Bullish signals: evaluated as long trade candidates
+    - Bearish signals: evaluated as long-avoidance / risk-warning calls
+    - Entry hit rate: did price reach the recommended bullish entry?
+    - Win rate: bullish entries that produced positive long P&L
     - Max drawdown from entry (MDD)
     - Max favorable excursion (MFE)
     - Profit factor: gross profit / gross loss
     - Average R-multiple: avg(profit / risk_per_trade)
+    - Avoidance success: bearish calls where avoiding a long prevented a loss
 """
 
 import json
@@ -38,8 +40,10 @@ log = logging.getLogger(__name__)
 SUMMARY_DIR = "report_summaries"
 RESULTS_DIR = "backtest_results"
 HOLDING_DAYS = 5  # Evaluate performance over N trading days after signal
-TARGET_PCT = 3.0  # Default profit target: +3%
+TARGET_R_MULTIPLE = 2.0  # Bullish target = entry + 2R, where R is entry-stop risk
 AMBIGUOUS_EXIT_POLICY = "conservative_stop"
+LONG_TRADE = "long_trade"
+LONG_AVOIDANCE = "long_avoidance"
 
 
 def run_backtest(lookback_days: int = None):
@@ -84,14 +88,17 @@ def run_backtest(lookback_days: int = None):
 def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
     """
     Evaluate one ticker's recommendations against actual subsequent prices.
-    Returns list of trade dicts with outcomes.
+    Returns list of evaluation dicts with outcomes.
     """
     ticker = summary.get("ticker", "?")
     direction = summary.get("direction", "unknown").lower()
     entries = summary.get("entry_prices", [])
     stops = summary.get("stop_prices", [])
 
-    if not entries or direction not in ("bullish", "bearish"):
+    if direction not in ("bullish", "bearish"):
+        return []
+
+    if direction == "bullish" and not entries:
         return []
 
     # Fetch actual prices after the report date
@@ -108,20 +115,38 @@ def _evaluate_ticker(report_date: str, summary: dict) -> list[dict]:
         log.warning(f"⚠️ {ticker}: price fetch failed for backtest: {e}")
         return []
 
+    if direction == "bearish":
+        reference_price = _safe_float(summary.get("current_price"))
+        if reference_price is None:
+            reference_price = _safe_float(actual_prices.iloc[0].get("Open"))
+        if reference_price is None:
+            return []
+
+        avoidance = _evaluate_long_avoidance(
+            ticker=ticker,
+            signal_date=report_date,
+            reference_price=reference_price,
+            price_data=actual_prices,
+        )
+        return [avoidance] if avoidance else []
+
     trades = []
 
     for i, entry_price in enumerate(entries[:3]):
-        stop_price = stops[i] if i < len(stops) else None
-        if not entry_price or (stop_price and stop_price == entry_price):
+        entry_price = _safe_float(entry_price)
+        stop_price = _safe_float(stops[i]) if i < len(stops) else None
+        if entry_price is None:
             continue
+        if stop_price is not None and stop_price >= entry_price:
+            stop_price = None
 
         trade = _simulate_trade(
             ticker=ticker,
             report_date=report_date,
             entry_level=i + 1,
             direction=direction,
-            entry_price=float(entry_price),
-            stop_price=float(stop_price) if stop_price else None,
+            entry_price=entry_price,
+            stop_price=stop_price,
             price_data=actual_prices,
         )
         if trade:
@@ -140,19 +165,13 @@ def _simulate_trade(
     price_data,
 ) -> dict | None:
     """
-    Simulate a single trade entry and check if entry was triggered,
-    then evaluate stop-loss and target outcomes.
+    Simulate a bullish long entry and evaluate stop-loss and target outcomes.
     """
     entry_triggered = False
     entry_date = None
 
     for date, row in price_data.iterrows():
-        # Check if price reached entry level
-        if direction == "bullish" and row["Low"] <= entry_price:
-            entry_triggered = True
-            entry_date = date
-            break
-        elif direction == "bearish" and row["High"] >= entry_price:
+        if row["Low"] <= entry_price:
             entry_triggered = True
             entry_date = date
             break
@@ -162,9 +181,11 @@ def _simulate_trade(
             "ticker": ticker,
             "report_date": report_date,
             "entry_level": entry_level,
+            "evaluation_type": LONG_TRADE,
             "direction": direction,
             "entry_price": entry_price,
             "stop_price": stop_price,
+            "target_price": _round_or_none(_target_from_stop(entry_price, stop_price)),
             "entry_triggered": False,
             "outcome": "no_fill",
             "pnl_pct": 0,
@@ -174,8 +195,7 @@ def _simulate_trade(
 
     # Entry was triggered — evaluate subsequent price action
     post_entry = price_data.loc[entry_date:]
-    target_price = entry_price * (1 + TARGET_PCT / 100) if direction == "bullish" \
-        else entry_price * (1 - TARGET_PCT / 100)
+    target_price = _target_from_stop(entry_price, stop_price)
 
     max_favorable = 0
     max_adverse = 0
@@ -183,17 +203,13 @@ def _simulate_trade(
     exit_price = None
 
     for _, row in post_entry.iterrows():
-        if direction == "bullish":
-            favorable = (row["High"] - entry_price) / entry_price * 100
-            adverse = (entry_price - row["Low"]) / entry_price * 100
-        else:
-            favorable = (entry_price - row["Low"]) / entry_price * 100
-            adverse = (row["High"] - entry_price) / entry_price * 100
+        favorable = (row["High"] - entry_price) / entry_price * 100
+        adverse = (entry_price - row["Low"]) / entry_price * 100
 
         max_favorable = max(max_favorable, favorable)
         max_adverse = max(max_adverse, adverse)
 
-        stop_hit, target_hit = _hit_flags(row, direction, stop_price, target_price)
+        stop_hit, target_hit = _hit_flags(row, stop_price, target_price)
 
         if stop_hit and target_hit:
             outcome = "ambiguous_same_day"
@@ -215,27 +231,25 @@ def _simulate_trade(
         outcome = "expired"
 
     # Calculate P&L
-    if direction == "bullish":
-        pnl_pct = (exit_price - entry_price) / entry_price * 100
-    else:
-        pnl_pct = (entry_price - exit_price) / entry_price * 100
+    pnl_pct = (exit_price - entry_price) / entry_price * 100
 
     # R-multiple (if stop exists)
     r_multiple = None
     if stop_price:
         risk = abs(entry_price - stop_price)
         if risk > 0:
-            reward = exit_price - entry_price if direction == "bullish" else entry_price - exit_price
+            reward = exit_price - entry_price
             r_multiple = round(reward / risk, 2)
 
     return {
         "ticker": ticker,
         "report_date": report_date,
         "entry_level": entry_level,
+        "evaluation_type": LONG_TRADE,
         "direction": direction,
         "entry_price": entry_price,
         "stop_price": stop_price,
-        "target_price": round(target_price, 2),
+        "target_price": _round_or_none(target_price),
         "entry_triggered": True,
         "outcome": outcome,
         "ambiguous_exit_policy": AMBIGUOUS_EXIT_POLICY if outcome == "ambiguous_same_day" else None,
@@ -247,78 +261,223 @@ def _simulate_trade(
     }
 
 
-def _hit_flags(row, direction: str, stop_price: float | None, target_price: float) -> tuple[bool, bool]:
-    """Return whether stop and target touched inside the same daily bar."""
-    if direction == "bullish":
-        stop_hit = stop_price is not None and row["Low"] <= stop_price
-        target_hit = row["High"] >= target_price
+def _evaluate_long_avoidance(
+    ticker: str,
+    signal_date: str,
+    reference_price: float,
+    price_data,
+) -> dict | None:
+    """
+    Evaluate a bearish signal as a long-avoidance call.
+
+    Positive avoided_return_pct means the avoided long would have lost money.
+    Positive max_runup_pct is opportunity cost from staying out.
+    """
+    if price_data.empty or reference_price <= 0:
+        return None
+
+    exit_price = price_data.iloc[-1]["Close"]
+    long_return_pct = (exit_price - reference_price) / reference_price * 100
+    avoided_return_pct = -long_return_pct
+    max_decline_pct = max(
+        0,
+        (reference_price - price_data["Low"].min()) / reference_price * 100,
+    )
+    max_runup_pct = max(
+        0,
+        (price_data["High"].max() - reference_price) / reference_price * 100,
+    )
+
+    if long_return_pct < 0:
+        outcome = "avoided_loss"
+    elif long_return_pct > 0:
+        outcome = "missed_gain"
     else:
-        stop_hit = stop_price is not None and row["High"] >= stop_price
-        target_hit = row["Low"] <= target_price
+        outcome = "flat"
+
+    return {
+        "ticker": ticker,
+        "report_date": signal_date,
+        "evaluation_type": LONG_AVOIDANCE,
+        "direction": "bearish",
+        "action": "avoid_long",
+        "reference_price": round(reference_price, 2),
+        "exit_price": round(exit_price, 2),
+        "outcome": outcome,
+        "long_return_pct": round(long_return_pct, 2),
+        "avoided_return_pct": round(avoided_return_pct, 2),
+        "max_decline_pct": round(max_decline_pct, 2),
+        "max_runup_pct": round(max_runup_pct, 2),
+    }
+
+
+def _target_from_stop(entry_price: float, stop_price: float | None) -> float | None:
+    if stop_price is None:
+        return None
+
+    risk = entry_price - stop_price
+    if risk <= 0:
+        return None
+
+    return entry_price + (risk * TARGET_R_MULTIPLE)
+
+
+def _hit_flags(row, stop_price: float | None, target_price: float | None) -> tuple[bool, bool]:
+    """Return whether stop and target touched inside the same daily bar."""
+    stop_hit = stop_price is not None and row["Low"] <= stop_price
+    target_hit = target_price is not None and row["High"] >= target_price
 
     return stop_hit, target_hit
 
 
-def _compute_metrics(trades: list[dict]) -> dict:
+def _safe_float(value) -> float | None:
+    try:
+        if value is None or value == "":
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _round_or_none(value: float | None) -> float | None:
+    return round(value, 2) if value is not None else None
+
+
+def _compute_metrics(records: list[dict]) -> dict:
     """Compute aggregate performance metrics."""
-    triggered = [t for t in trades if t["entry_triggered"]]
-    not_triggered = [t for t in trades if not t["entry_triggered"]]
+    long_trades = [r for r in records if r.get("evaluation_type") == LONG_TRADE]
+    avoidance = [r for r in records if r.get("evaluation_type") == LONG_AVOIDANCE]
+    triggered = [t for t in long_trades if t["entry_triggered"]]
+    not_triggered = [t for t in long_trades if not t["entry_triggered"]]
 
-    if not triggered:
-        return {"error": "No triggered trades"}
-
-    wins = [t for t in triggered if t["pnl_pct"] > 0]
-    losses = [t for t in triggered if t["pnl_pct"] <= 0]
-
-    gross_profit = sum(t["pnl_pct"] for t in wins)
-    gross_loss = abs(sum(t["pnl_pct"] for t in losses))
-
-    r_multiples = [t["r_multiple"] for t in triggered if t["r_multiple"] is not None]
-
-    return {
-        "total_signals": len(trades),
-        "entries_triggered": len(triggered),
-        "entries_missed": len(not_triggered),
-        "entry_hit_rate": round(len(triggered) / len(trades) * 100, 1),
-        "wins": len(wins),
-        "losses": len(losses),
-        "win_rate": round(len(wins) / len(triggered) * 100, 1) if triggered else 0,
-        "avg_pnl_pct": round(sum(t["pnl_pct"] for t in triggered) / len(triggered), 2),
-        "avg_mfe_pct": round(sum(t["mfe_pct"] for t in triggered) / len(triggered), 2),
-        "avg_mdd_pct": round(sum(t["mdd_pct"] for t in triggered) / len(triggered), 2),
-        "max_single_loss_pct": round(min(t["pnl_pct"] for t in triggered), 2),
-        "max_single_win_pct": round(max(t["pnl_pct"] for t in triggered), 2),
-        "profit_factor": round(gross_profit / gross_loss, 2) if gross_loss > 0 else float("inf"),
-        "avg_r_multiple": round(sum(r_multiples) / len(r_multiples), 2) if r_multiples else None,
-        "stopped_count": len([t for t in triggered if t["outcome"] == "stopped"]),
-        "target_count": len([t for t in triggered if t["outcome"] == "target"]),
-        "ambiguous_same_day_count": len([t for t in triggered if t["outcome"] == "ambiguous_same_day"]),
-        "expired_count": len([t for t in triggered if t["outcome"] == "expired"]),
+    metrics = {
+        "total_evaluations": len(records),
+        "long_trade_signals": len(long_trades),
+        "avoidance_signals": len(avoidance),
+        "target_r_multiple": TARGET_R_MULTIPLE,
     }
 
+    if long_trades:
+        metrics.update({
+            "entries_triggered": len(triggered),
+            "entries_missed": len(not_triggered),
+            "entry_hit_rate": round(len(triggered) / len(long_trades) * 100, 1),
+        })
+    else:
+        metrics.update({
+            "entries_triggered": 0,
+            "entries_missed": 0,
+            "entry_hit_rate": None,
+        })
 
-def _print_report(metrics: dict, trades: list[dict]):
+    if triggered:
+        wins = [t for t in triggered if t["pnl_pct"] > 0]
+        losses = [t for t in triggered if t["pnl_pct"] <= 0]
+        gross_profit = sum(t["pnl_pct"] for t in wins)
+        gross_loss = abs(sum(t["pnl_pct"] for t in losses))
+        r_multiples = [t["r_multiple"] for t in triggered if t["r_multiple"] is not None]
+        metrics.update({
+            "wins": len(wins),
+            "losses": len(losses),
+            "win_rate": round(len(wins) / len(triggered) * 100, 1),
+            "avg_pnl_pct": round(sum(t["pnl_pct"] for t in triggered) / len(triggered), 2),
+            "avg_mfe_pct": round(sum(t["mfe_pct"] for t in triggered) / len(triggered), 2),
+            "avg_mdd_pct": round(sum(t["mdd_pct"] for t in triggered) / len(triggered), 2),
+            "max_single_loss_pct": round(min(t["pnl_pct"] for t in triggered), 2),
+            "max_single_win_pct": round(max(t["pnl_pct"] for t in triggered), 2),
+            "profit_factor": round(gross_profit / gross_loss, 2) if gross_loss > 0 else float("inf"),
+            "avg_r_multiple": round(sum(r_multiples) / len(r_multiples), 2) if r_multiples else None,
+            "stopped_count": len([t for t in triggered if t["outcome"] == "stopped"]),
+            "target_count": len([t for t in triggered if t["outcome"] == "target"]),
+            "ambiguous_same_day_count": len([t for t in triggered if t["outcome"] == "ambiguous_same_day"]),
+            "expired_count": len([t for t in triggered if t["outcome"] == "expired"]),
+        })
+    else:
+        metrics.update({
+            "wins": 0,
+            "losses": 0,
+            "win_rate": None,
+            "avg_pnl_pct": None,
+            "avg_mfe_pct": None,
+            "avg_mdd_pct": None,
+            "max_single_loss_pct": None,
+            "max_single_win_pct": None,
+            "profit_factor": None,
+            "avg_r_multiple": None,
+            "stopped_count": 0,
+            "target_count": 0,
+            "ambiguous_same_day_count": 0,
+            "expired_count": 0,
+        })
+
+    if avoidance:
+        successes = [a for a in avoidance if a["avoided_return_pct"] > 0]
+        metrics.update({
+            "avoidance_successes": len(successes),
+            "avoidance_failures": len(avoidance) - len(successes),
+            "avoidance_success_rate": round(len(successes) / len(avoidance) * 100, 1),
+            "avg_avoided_return_pct": round(
+                sum(a["avoided_return_pct"] for a in avoidance) / len(avoidance),
+                2,
+            ),
+            "avg_avoided_drawdown_pct": round(
+                sum(a["max_decline_pct"] for a in avoidance) / len(avoidance),
+                2,
+            ),
+            "avg_missed_upside_pct": round(
+                sum(a["max_runup_pct"] for a in avoidance) / len(avoidance),
+                2,
+            ),
+            "avoided_loss_count": len([a for a in avoidance if a["outcome"] == "avoided_loss"]),
+            "missed_gain_count": len([a for a in avoidance if a["outcome"] == "missed_gain"]),
+        })
+    else:
+        metrics.update({
+            "avoidance_successes": 0,
+            "avoidance_failures": 0,
+            "avoidance_success_rate": None,
+            "avg_avoided_return_pct": None,
+            "avg_avoided_drawdown_pct": None,
+            "avg_missed_upside_pct": None,
+            "avoided_loss_count": 0,
+            "missed_gain_count": 0,
+        })
+
+    return metrics
+
+
+def _print_report(metrics: dict, records: list[dict]):
     """Print backtest results to console."""
     log.info("=" * 60)
     log.info("📊 BACKTEST RESULTS")
     log.info("=" * 60)
-    log.info(f"  Total signals: {metrics['total_signals']}")
-    log.info(f"  Entry hit rate: {metrics['entry_hit_rate']}%")
-    log.info(f"  Win rate: {metrics['win_rate']}%")
-    log.info(f"  Avg P&L: {metrics['avg_pnl_pct']}%")
-    log.info(f"  Avg MFE: {metrics['avg_mfe_pct']}% | Avg MDD: {metrics['avg_mdd_pct']}%")
-    log.info(f"  Profit Factor: {metrics['profit_factor']}")
-    log.info(f"  Avg R-Multiple: {metrics.get('avg_r_multiple', 'N/A')}")
+    log.info(f"  Total evaluations: {metrics['total_evaluations']}")
     log.info(
-        f"  Outcomes: {metrics['target_count']} target / "
-        f"{metrics['stopped_count']} stopped / "
-        f"{metrics['ambiguous_same_day_count']} ambiguous / "
-        f"{metrics['expired_count']} expired"
+        f"  Long trade signals: {metrics['long_trade_signals']} | "
+        f"Long-avoidance signals: {metrics['avoidance_signals']}"
     )
+    if metrics["long_trade_signals"]:
+        log.info(f"  Long entry hit rate: {metrics['entry_hit_rate']}%")
+        log.info(f"  Long win rate: {metrics['win_rate']}%")
+        log.info(f"  Avg long P&L: {metrics['avg_pnl_pct']}%")
+        log.info(f"  Avg MFE: {metrics['avg_mfe_pct']}% | Avg MDD: {metrics['avg_mdd_pct']}%")
+        log.info(f"  Profit Factor: {metrics['profit_factor']}")
+        log.info(f"  Avg R-Multiple: {metrics.get('avg_r_multiple', 'N/A')}")
+        log.info(
+            f"  Long outcomes: {metrics['target_count']} target / "
+            f"{metrics['stopped_count']} stopped / "
+            f"{metrics['ambiguous_same_day_count']} ambiguous / "
+            f"{metrics['expired_count']} expired"
+        )
+    if metrics["avoidance_signals"]:
+        log.info(f"  Avoidance success rate: {metrics['avoidance_success_rate']}%")
+        log.info(f"  Avg avoided return: {metrics['avg_avoided_return_pct']}%")
+        log.info(f"  Avg avoided drawdown: {metrics['avg_avoided_drawdown_pct']}%")
+        log.info(f"  Avg missed upside: {metrics['avg_missed_upside_pct']}%")
     log.info("=" * 60)
 
 
-def _save_results(metrics: dict, trades: list[dict]):
+def _save_results(metrics: dict, records: list[dict]):
     """Save backtest results to JSON."""
     Path(RESULTS_DIR).mkdir(exist_ok=True)
     today = datetime.now(TZ).strftime("%Y-%m-%d")
@@ -327,7 +486,7 @@ def _save_results(metrics: dict, trades: list[dict]):
     result = {
         "run_date": today,
         "metrics": metrics,
-        "trades": trades,
+        "evaluations": records,
     }
     filepath.write_text(json.dumps(result, indent=2, ensure_ascii=False))
     log.info(f"📋 Results saved to {filepath}")

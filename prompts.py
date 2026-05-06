@@ -267,6 +267,8 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
 - 각 섹션은 핵심 근거 중심으로 간결하게 작성하세요. 장황한 설명보다 근거 있는 짧은 판단이 낫습니다.
 - "콜+풋 합산 OI 최대 행사가"는 실제 max pain 계산이 아닙니다. 과대해석하지 마세요.
 - 피보나치 분석 시 "단기 스윙 후보"와 "30/60/120일 고저점"을 참고하여 현재 추세에 맞는 유의미한 기준점을 직접 판단하세요.
+- bearish는 숏 진입 추천이 아니라 롱 회피/위험 경고입니다. bearish/neutral/관망/위험 판단이면 진입가를 억지로 만들지 말고 `entry_prices`와 `stop_prices`에 빈 배열을 사용할 수 있습니다.
+- 숫자 진입가와 손절가는 실제 롱 진입이 타당할 때만 제시하세요. 관망이 최선이면 표에는 N/A를 쓰고 JSON 배열은 비우세요.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 출력 형식 (아래 형식으로 작성)
@@ -279,16 +281,16 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
 ### 🎯 진입 타이밍
 | 구분 | 가격 | 근거 (한 줄) |
 |------|------|-------------|
-| 1차 진입 (공격적) | $XX.XX | [핵심 근거] |
-| 2차 진입 (중립적) | $XX.XX | [핵심 근거] |
-| 3차 진입 (보수적) | $XX.XX | [핵심 근거] |
+| 1차 진입 (공격적) | $XX.XX 또는 N/A | [핵심 근거] |
+| 2차 진입 (중립적) | $XX.XX 또는 N/A | [핵심 근거] |
+| 3차 진입 (보수적) | $XX.XX 또는 N/A | [핵심 근거] |
 
 ### 🛑 손절 타이밍
 | 구분 | 가격 | 근거 (한 줄) |
 |------|------|-------------|
-| 1차 손절 (타이트) | $XX.XX | [핵심 근거] |
-| 2차 손절 (중간) | $XX.XX | [핵심 근거] |
-| 3차 손절 (와이드) | $XX.XX | [핵심 근거] |
+| 1차 손절 (타이트) | $XX.XX 또는 N/A | [핵심 근거] |
+| 2차 손절 (중간) | $XX.XX 또는 N/A | [핵심 근거] |
+| 3차 손절 (와이드) | $XX.XX 또는 N/A | [핵심 근거] |
 
 ### 📅 전망
 - 단기(1주):
@@ -326,6 +328,7 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 분석 마지막에 아래 형식의 JSON 블록을 반드시 출력하세요.
 값은 위 분석 내용에서 추출하세요. 가격은 숫자만, 방향은 bullish/bearish/neutral 중 하나.
+bearish는 숏이 아니라 롱 회피/위험 경고입니다. 롱 진입이 적합하지 않으면 `entry_prices`와 `stop_prices`는 []로 출력하세요.
 
 ```json
 {{
@@ -333,8 +336,8 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
   "current_price": {price},
   "entry_suitability": "매우적극/적극/중립/관망/위험 중 하나",
   "direction": "bullish/bearish/neutral 중 하나",
-  "entry_prices": [1차진입가, 2차진입가, 3차진입가],
-  "stop_prices": [1차손절가, 2차손절가, 3차손절가],
+  "entry_prices": [숫자 진입가들 또는 빈 배열],
+  "stop_prices": [숫자 손절가들 또는 빈 배열],
   "outlook_short": "단기 전망 한 줄",
   "outlook_mid": "중기 전망 한 줄",
   "outlook_long": "장기 전망 한 줄",
@@ -359,6 +362,8 @@ write a comprehensive analysis report.
 - Write each section concisely, focusing on key rationale. Short, evidence-based judgment > long explanations.
 - "Highest Combined OI Strike" is NOT a true max pain calculation. Do not over-interpret it.
 - For Fibonacci: use the short-term swing candidates and 30/60/120D highs/lows to identify meaningful swing points yourself.
+- Bearish means long-avoidance / risk warning, not a short-entry recommendation. If the view is bearish, neutral, watch & wait, or risky, do not force entry prices; `entry_prices` and `stop_prices` may be empty arrays.
+- Numeric entries and stops should be provided only when a realistic long entry is justified. If waiting is best, use N/A in the table and empty arrays in JSON.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 Output Format
@@ -371,16 +376,16 @@ write a comprehensive analysis report.
 ### 🎯 Entry Timing
 | Category | Price | Rationale (One Line) |
 |------|------|-------------|
-| 1st Entry (Aggressive) | $XX.XX | [Key Rationale] |
-| 2nd Entry (Neutral) | $XX.XX | [Key Rationale] |
-| 3rd Entry (Conservative) | $XX.XX | [Key Rationale] |
+| 1st Entry (Aggressive) | $XX.XX or N/A | [Key Rationale] |
+| 2nd Entry (Neutral) | $XX.XX or N/A | [Key Rationale] |
+| 3rd Entry (Conservative) | $XX.XX or N/A | [Key Rationale] |
 
 ### 🛑 Stop-Loss Timing
 | Category | Price | Rationale (One Line) |
 |------|------|-------------|
-| 1st Stop-Loss (Tight) | $XX.XX | [Key Rationale] |
-| 2nd Stop-Loss (Intermediate) | $XX.XX | [Key Rationale] |
-| 3rd Stop-Loss (Wide) | $XX.XX | [Key Rationale] |
+| 1st Stop-Loss (Tight) | $XX.XX or N/A | [Key Rationale] |
+| 2nd Stop-Loss (Intermediate) | $XX.XX or N/A | [Key Rationale] |
+| 3rd Stop-Loss (Wide) | $XX.XX or N/A | [Key Rationale] |
 
 ### 📅 Outlook
 - Short-Term (1 Week):
@@ -418,6 +423,7 @@ write a comprehensive analysis report.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 At the end of your analysis, output a JSON block in exactly this format.
 Extract values from your analysis above. Prices as numbers only, direction as bullish/bearish/neutral.
+Bearish means long-avoidance / risk warning, not shorting. If a long entry is not suitable, output [] for `entry_prices` and `stop_prices`.
 
 ```json
 {{
@@ -425,8 +431,8 @@ Extract values from your analysis above. Prices as numbers only, direction as bu
   "current_price": {price},
   "entry_suitability": "one of: highly aggressive/aggressive/neutral/watch & wait/risky",
   "direction": "bullish/bearish/neutral",
-  "entry_prices": [1st_entry, 2nd_entry, 3rd_entry],
-  "stop_prices": [1st_stop, 2nd_stop, 3rd_stop],
+  "entry_prices": [numeric_entry_prices_or_empty],
+  "stop_prices": [numeric_stop_prices_or_empty],
   "outlook_short": "one line short-term outlook",
   "outlook_mid": "one line mid-term outlook",
   "outlook_long": "one line long-term outlook",

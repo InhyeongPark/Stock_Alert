@@ -185,12 +185,16 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **방법:** 매일 저장된 JSON의 진입/손절가 vs 이후 실제 가격
 - **실행:** `python backtester.py` (데이터 쌓인 후)
 - **지표:** Win rate, Profit Factor, R-Multiple, MFE, MDD
+- **의미:** `bullish`만 롱 트레이드로 평가하고, `bearish`는 숏이 아니라 롱 회피/위험 경고로 평가
+- **타겟:** bullish live target은 고정 3%가 아니라 저장된 stop 거리 기준 `entry + 2R`
 
 ### Proxy Walk-Forward (Phase 5b) — `proxy_backtest.py`
 - **질문:** "Claude에게 주는 기술지표 조합이 유효한가?"
 - **방법:** 규칙을 고정하고 과거 데이터를 walk-forward
 - **실행:** `python proxy_backtest.py MSFT --years 2`
 - **주의:** 규칙을 결과 보고 조정하면 overfitting. FIXED RULES 유지
+- **쿨다운:** 한 추세 구간이 매일 독립 신호로 중복 집계되지 않도록 `HOLDING_DAYS`만큼 cooldown 적용
+- **타겟:** bullish proxy target은 고정 3%가 아니라 `entry + ATR * 2.0`
 
 ---
 

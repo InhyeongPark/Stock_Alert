@@ -213,6 +213,21 @@ uv run --python 3.12 --with-requirements requirements.txt python backtester.py -
 
 Uses `report_summaries/*.json`, then checks later OHLC price action.
 
+Signal semantics:
+
+- `bullish` is evaluated as a long trade candidate using Claude's saved entry and stop prices.
+- `bearish` is evaluated as long avoidance / risk warning, not as a short trade.
+- `neutral`, missing entries, and parse failures are skipped for executable trade metrics.
+
+Bullish live targets are no longer a fixed percent. The target is derived from the saved stop distance:
+
+```text
+target = entry + 2R
+R = entry - stop
+```
+
+Bearish avoidance metrics answer a different question: did staying out avoid a loss, or did it miss upside?
+
 Important detail: if stop and target both touch inside the same daily candle, the trade is marked:
 
 ```text
@@ -231,6 +246,13 @@ uv run --python 3.12 --with-requirements requirements.txt python proxy_backtest.
 ```
 
 Do not tune proxy rules after looking at results unless you explicitly start a new validation split. Otherwise the test becomes overfit.
+
+Proxy backtest cleanup:
+
+- Repeated signals now use a cooldown equal to `HOLDING_DAYS`, so one trend stretch is not counted as a fresh trade every day.
+- `bullish` signals are evaluated as long trades with ATR-based stops and targets.
+- `bearish` signals are evaluated as long avoidance / risk warning, not short trades.
+- The proxy target is now `entry + ATR * 2.0` for bullish trades instead of a fixed 3% target.
 
 ---
 
@@ -293,6 +315,8 @@ Targeted checks should cover:
 - summary JSON parse failure produces `summary_parse_status = failed`
 - Polymarket below/under questions invert YES into bearish
 - live/proxy backtests mark same-day stop/target hits as `ambiguous_same_day`
+- bearish backtest signals are evaluated as long avoidance, not short P&L
+- proxy cooldown and ATR target parameters are present in saved metrics
 
 ---
 
@@ -303,3 +327,5 @@ Targeted checks should cover:
 - `ENABLE_BACKTEST_EXPORT` is currently reserved and not wired into the daily orchestrator.
 - `ENABLE_POLYMARKET_CLAUDE_REVIEW` adds optional second-pass confidence review but does not rewrite the original recommendation.
 - Daily OHLC data cannot prove intraday ordering, so ambiguous same-day outcomes are explicitly labeled.
+- Backtests separate executable long-trade metrics from bearish long-avoidance metrics.
+- Proxy backtest uses fixed rules with cooldown and ATR targets; changing those after seeing results creates overfitting risk.
