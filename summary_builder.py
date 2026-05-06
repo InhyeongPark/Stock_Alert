@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 from config import TZ
+from investment_profiles import profile_context_for_summary
 
 log = logging.getLogger(__name__)
 
@@ -109,6 +110,9 @@ def _normalize_summary(summary: dict, ticker: str, stock_data: dict) -> dict:
     """Ensure downstream Discord/backtest code sees stable field types."""
     summary.setdefault("ticker", ticker)
     summary.setdefault("current_price", stock_data.get("current_price"))
+    profile_context = profile_context_for_summary(ticker)
+    for key, value in profile_context.items():
+        summary.setdefault(key, value)
     summary.setdefault("summary_parse_status", "ok")
     summary.setdefault("entry_suitability", "unknown")
     summary.setdefault("direction", "unknown")

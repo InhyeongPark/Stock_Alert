@@ -18,12 +18,12 @@
 │  Step 0: 휴장일 체크 (market_calendar.py)                        │
 │  Step 1: watchlist.txt 로드                                      │
 │  Step 2: 종목별 데이터 수집 + Claude 분석                         │
-│  Step 3: API 사용량 추적                                         │
-│  Step 4: HTML 이메일 생성                                        │
-│  Step 5: Gmail 발송                                              │
-│  Step 6: report_summary.json 저장 ──────────────┐               │
-│  Step 7: Discord 요약 알림 ──────────────────────┤               │
-│  Step 8: Polymarket 방향성 대조 ─────────────────┘               │
+│  Step 3: report_summary.json 생성 + Polymarket 대조              │
+│  Step 4: portfolio concentration 경고                            │
+│  Step 5: JSON 저장 + Discord 요약 알림                            │
+│  Step 6: API 사용량 추적                                         │
+│  Step 7: HTML 이메일 생성                                        │
+│  Step 8: Gmail 발송                                              │
 └─────────────────────────────────────────────────────────────────┘
                              │
               ┌──────────────┼──────────────┐
@@ -57,6 +57,8 @@ Stock_Alert/
 ├── ── Claude 분석 ──
 ├── analyzer.py              # Claude API 호출 (web search 포함)
 ├── prompts.py               # 프롬프트 템플릿 (한국어/영어)
+├── investment_profiles.py   # 투자 프로파일별 horizon/risk 설정
+├── portfolio_monitor.py     # 포트폴리오 방향/테마 집중 경고
 │
 ├── ── 출력 채널 ──
 ├── email_builder.py         # HTML 이메일 생성
@@ -198,9 +200,16 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - **실행:** `python proxy_backtest.py MSFT --years 2`
 - **주의:** 규칙을 결과 보고 조정하면 overfitting. FIXED RULES 유지
 - **쿨다운:** 한 추세 구간이 매일 독립 신호로 중복 집계되지 않도록 `HOLDING_DAYS`만큼 cooldown 적용
-- **타겟:** bullish proxy target은 고정 3%가 아니라 `entry + ATR * 2.0`
+- **프로파일:** `core_theme`, `growth_theme`, `high_vol_swing` 등 class-level profile로 holding window와 target R을 결정
+- **타겟:** bullish proxy target은 고정 3%가 아니라 `entry + (entry - stop) * target_r_multiple`
 - **벤치마크/리스크:** SPY/QQQ excess/underperformance와 ATR 기반 risk structure를 함께 저장
 - **회피 평가:** bearish avoidance는 절대수익률 기준 성공률과 SPY/QQQ 대비 underperformance 기준 성공률을 함께 제공
+
+### Portfolio Concentration — `portfolio_monitor.py`
+- **질문:** "현재 5개 종목이 같은 메가트렌드/방향으로 과도하게 몰려 있나?"
+- **방법:** 요약 JSON의 direction과 ticker theme tag를 집계
+- **출력:** Discord digest와 저장 JSON에 direction crowding / theme concentration warning 추가
+- **해석:** 수익률 상관계수 계산이 아니라 daily risk awareness용 1차 경고
 
 ---
 

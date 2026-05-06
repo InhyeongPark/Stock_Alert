@@ -51,6 +51,7 @@ from usage_tracker import UsageTracker
 from summary_builder import extract_summary_from_analysis, save_daily_summary
 from discord_notifier import send_discord_digest
 from polymarket_client import search_polymarket, compare_directions
+from portfolio_monitor import attach_portfolio_context
 
 
 def main():
@@ -180,6 +181,10 @@ def main():
                         "ticker": ticker,
                         "reason": f"Polymarket enrichment failed: {e}",
                     }
+
+        portfolio_context = attach_portfolio_context(summaries)
+        if portfolio_context.get("warnings"):
+            log.warning(f"Portfolio concentration warnings: {portfolio_context['warnings']}")
 
         summary_path = save_daily_summary(summaries)
         log.info(f"Summary JSON ready: {summary_path}")

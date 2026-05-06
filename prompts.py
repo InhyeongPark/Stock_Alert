@@ -5,6 +5,8 @@ Separated from logic so they can be edited without touching code.
 
 import json
 
+from investment_profiles import format_profile_context, profile_context_for_summary
+
 
 def build_tech_summary_ko(d: dict) -> str:
     """Build the Korean technical data block."""
@@ -250,6 +252,8 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
     """Build the full prompt: data → analysis rules → output format."""
     ticker = stock_data["ticker"]
     price = stock_data["current_price"]
+    profile_context = format_profile_context(ticker, language)
+    profile_summary = profile_context_for_summary(ticker)
 
     if language == "ko":
         tech = build_tech_summary_ko(stock_data)
@@ -258,6 +262,8 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
 또한 웹 검색으로 {ticker}의 공매도 잔고(Short Interest), 공매도 비율(SI % of Float)도 조사하세요.
 
 {tech}
+
+{profile_context}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📏 분석 규칙 (반드시 준수)
@@ -269,6 +275,7 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
 - 피보나치 분석 시 "단기 스윙 후보"와 "30/60/120일 고저점"을 참고하여 현재 추세에 맞는 유의미한 기준점을 직접 판단하세요.
 - bearish는 숏 진입 추천이 아니라 롱 회피/위험 경고입니다. bearish/neutral/관망/위험 판단이면 진입가를 억지로 만들지 말고 `entry_prices`와 `stop_prices`에 빈 배열을 사용할 수 있습니다.
 - 숫자 진입가와 손절가는 실제 롱 진입이 타당할 때만 제시하세요. 관망이 최선이면 표에는 N/A를 쓰고 JSON 배열은 비우세요.
+- 진입/손절 추천은 위 투자 프로파일의 시간 프레임과 진입 스타일에 맞추세요. 단기 스윙 종목과 중장기 테마 포지션을 같은 기준으로 다루지 마세요.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 출력 형식 (아래 형식으로 작성)
@@ -334,6 +341,8 @@ bearish는 숏이 아니라 롱 회피/위험 경고입니다. 롱 진입이 적
 {{
   "ticker": "{ticker}",
   "current_price": {price},
+  "investment_profile": "{profile_summary['investment_profile']}",
+  "investment_horizon": "{profile_summary['investment_horizon']}",
   "entry_suitability": "매우적극/적극/중립/관망/위험 중 하나",
   "direction": "bullish/bearish/neutral 중 하나",
   "entry_prices": [숫자 진입가들 또는 빈 배열],
@@ -354,6 +363,8 @@ write a comprehensive analysis report.
 
 {tech}
 
+{profile_context}
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📏 Analysis Rules (MUST follow)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -364,6 +375,7 @@ write a comprehensive analysis report.
 - For Fibonacci: use the short-term swing candidates and 30/60/120D highs/lows to identify meaningful swing points yourself.
 - Bearish means long-avoidance / risk warning, not a short-entry recommendation. If the view is bearish, neutral, watch & wait, or risky, do not force entry prices; `entry_prices` and `stop_prices` may be empty arrays.
 - Numeric entries and stops should be provided only when a realistic long entry is justified. If waiting is best, use N/A in the table and empty arrays in JSON.
+- Match entry and stop recommendations to the investment profile's horizon and entry style. Do not evaluate short-term swing candidates and long-term theme positions with the same entry logic.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 Output Format
@@ -429,6 +441,8 @@ Bearish means long-avoidance / risk warning, not shorting. If a long entry is no
 {{
   "ticker": "{ticker}",
   "current_price": {price},
+  "investment_profile": "{profile_summary['investment_profile']}",
+  "investment_horizon": "{profile_summary['investment_horizon']}",
   "entry_suitability": "one of: highly aggressive/aggressive/neutral/watch & wait/risky",
   "direction": "bullish/bearish/neutral",
   "entry_prices": [numeric_entry_prices_or_empty],

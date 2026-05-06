@@ -65,9 +65,14 @@ def send_discord_digest(summaries: list[dict]) -> bool:
         log.warning("No embeds to send")
         return False
 
+    portfolio_line = _format_portfolio_context(summaries)
+    content = f"📈 **일일 주식 분석 요약** — {date_str}"
+    if portfolio_line:
+        content += f"\n{portfolio_line}"
+
     # Discord allows max 10 embeds per message
     payload = {
-        "content": f"📈 **일일 주식 분석 요약** — {date_str}",
+        "content": _truncate(content, 2000),
         "embeds": embeds[:10],
     }
 
@@ -76,10 +81,13 @@ def send_discord_digest(summaries: list[dict]) -> bool:
         req = urllib.request.Request(
             webhook_url,
             data=data,
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Stock-Alert/1.0",
+            },
             method="POST",
         )
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             if resp.status in (200, 204):
                 log.info(f"✅ Discord digest sent ({len(embeds)} tickers)")
                 return True
@@ -118,13 +126,18 @@ def _build_embed(summary: dict) -> dict | None:
     outlook_short = summary.get("outlook_short", "N/A")
     outlook_mid = summary.get("outlook_mid", "N/A")
 
+    profile = summary.get("investment_profile")
+    horizon = summary.get("investment_horizon")
+    profile_str = f"{profile} | {horizon}" if profile or horizon else "N/A"
+
     fields = [
-        {"name": "💰 현재가", "value": f"${price}", "inline": True},
-        {"name": "📊 방향", "value": f"{direction.upper()} {emoji}", "inline": True},
-        {"name": "🎯 진입가 (1st/2nd/3rd)", "value": entry_str, "inline": False},
-        {"name": "🛑 손절가 (1st/2nd/3rd)", "value": stop_str, "inline": False},
-        {"name": "📅 전망 (단기/중기)", "value": f"{outlook_short} / {outlook_mid}", "inline": False},
-        {"name": "💡 핵심 근거", "value": reason_str, "inline": False},
+        _field("💰 현재가", f"${price}", True),
+        _field("📊 방향", f"{direction.upper()} {emoji}", True),
+        _field("🧭 프로파일", profile_str, False),
+        _field("🎯 진입가 (1st/2nd/3rd)", entry_str, False),
+        _field("🛑 손절가 (1st/2nd/3rd)", stop_str, False),
+        _field("📅 전망 (단기/중기)", f"{outlook_short} / {outlook_mid}", False),
+        _field("💡 핵심 근거", reason_str, False),
     ]
 
     review = summary.get("polymarket_claude_review")
@@ -133,27 +146,59 @@ def _build_embed(summary: dict) -> dict | None:
         magnitude = review.get("adjustment_magnitude", "unknown")
         final_confidence = review.get("final_confidence_after_polymarket", "unknown")
         review_reason = review.get("reason", "N/A")
-        fields.append({
-            "name": "🔎 Polymarket Claude 검토",
-            "value": (
+        fields.append(_field(
+            "🔎 Polymarket Claude 검토",
+            (
                 f"{adjustment.upper()} ({magnitude}) | "
                 f"final confidence: {final_confidence}\n{review_reason}"
-            )[:1024],
-            "inline": False,
-        })
+            ),
+            False,
+        ))
 
     parse_status = summary.get("summary_parse_status", "unknown")
     if parse_status == "failed":
         color = 0xEF4444
-        fields.insert(0, {
-            "name": "JSON 추출 실패",
-            "value": "기계판독 요약을 파싱하지 못했습니다. 상세 이메일을 확인하세요.",
-            "inline": False,
-        })
+        fields.insert(0, _field(
+            "JSON 추출 실패",
+            "기계판독 요약을 파싱하지 못했습니다. 상세 이메일을 확인하세요.",
+            False,
+        ))
 
     return {
-        "title": f"**{ticker}**",
+        "title": _truncate(f"**{ticker}**", 256),
         "color": color,
         "fields": fields,
-        "footer": {"text": f"Entry Suitability: {suitability}"},
+        "footer": {"text": _truncate(f"Entry Suitability: {suitability}", 2048)},
     }
+
+
+def _field(name: str, value, inline: bool, value_limit: int = 300) -> dict:
+    text = str(value) if value not in (None, "") else "N/A"
+    return {
+        "name": _truncate(name, 256),
+        "value": _truncate(text, min(value_limit, 1024)),
+        "inline": inline,
+    }
+
+
+def _truncate(text: str, limit: int) -> str:
+    text = str(text)
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 1)] + "…"
+
+
+def _format_portfolio_context(summaries: list[dict]) -> str:
+    if not summaries:
+        return ""
+
+    context = summaries[0].get("portfolio_context") or {}
+    warnings = context.get("warnings") or []
+    if not warnings:
+        return ""
+
+    lines = []
+    for warning in warnings[:3]:
+        severity = warning.get("severity", "info").upper()
+        lines.append(f"⚠️ {severity}: {warning.get('message', 'Portfolio concentration warning')}")
+    return "\n".join(lines)

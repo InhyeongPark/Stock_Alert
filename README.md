@@ -66,6 +66,8 @@ Stock_Alert/
 ├── market_calendar.py           # NYSE open/closed check
 ├── analyzer.py                  # Claude API call
 ├── prompts.py                   # Korean/English prompt templates
+├── investment_profiles.py       # Profile-based horizons and risk settings
+├── portfolio_monitor.py         # Portfolio concentration warnings
 ├── email_builder.py             # HTML report generation
 ├── email_sender.py              # Gmail SMTP
 ├── summary_builder.py           # Extracts Claude JSON summary
@@ -103,6 +105,7 @@ Recommended defaults:
 - Set `ENABLE_POLYMARKET = False` if matching quality is not good enough for your watchlist.
 - Set `ENABLE_POLYMARKET_CLAUDE_REVIEW = False` if you want to avoid extra Claude calls.
 - Use `ENABLE_DISCORD_DIGEST = True` only after adding `DISCORD_WEBHOOK_URL`.
+- Discord sends before the detailed email. If email arrives but Discord does not, check the GitHub Actions log for missing/invalid `DISCORD_WEBHOOK_URL` or Discord webhook HTTP errors.
 
 ---
 
@@ -258,10 +261,11 @@ Do not tune proxy rules after looking at results unless you explicitly start a n
 
 Proxy backtest cleanup:
 
-- Repeated signals now use a cooldown equal to `HOLDING_DAYS`, so one trend stretch is not counted as a fresh trade every day.
+- Repeated signals now use a cooldown equal to the profile holding window, so one trend stretch is not counted as a fresh trade every day.
 - `bullish` signals are evaluated as long trades with ATR-based stops and targets.
 - `bearish` signals are evaluated as long avoidance / risk warning, not short trades.
-- The proxy target is now `entry + ATR * 2.0` for bullish trades instead of a fixed 3% target.
+- Proxy uses profile-based horizons from `investment_profiles.py`: core theme names use longer windows, while high-volatility swing names use shorter windows.
+- The proxy target is now R-multiple based: `target = entry + (entry - stop) * target_r_multiple`.
 - Proxy long trades also store `atr_14` and risk fields, including `atr_to_stop`.
 - Proxy metrics include average long excess return versus SPY/QQQ and bearish underperformance rates versus SPY/QQQ when benchmark data is available.
 - Avoidance metrics include both absolute success (`avoided_return_pct > 0`) and benchmark-relative success by SPY/QQQ underperformance.
@@ -331,6 +335,8 @@ Targeted checks should cover:
 - proxy cooldown and ATR target parameters are present in saved metrics
 - live/proxy benchmark metrics calculate SPY/QQQ comparison fields without changing trade outcomes
 - risk structure fields are present on long-trade evaluations
+- proxy profiles are applied before looking at results and are stored in saved backtest JSON
+- Discord field values are truncated to avoid webhook rejection from Discord payload limits
 
 ---
 
@@ -344,3 +350,4 @@ Targeted checks should cover:
 - Backtests separate executable long-trade metrics from bearish long-avoidance metrics.
 - Proxy backtest uses fixed rules with cooldown and ATR targets; changing those after seeing results creates overfitting risk.
 - Live backtest treats missing/invalid stops as recommendation-quality errors, not unmanaged 5-day buy-and-hold trades.
+- Investment profiles are class-level assumptions, not ticker-by-ticker backtest tuning knobs.

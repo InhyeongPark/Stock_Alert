@@ -32,15 +32,15 @@ import pandas as pd
 import pandas_ta as ta
 
 from config import TZ
+from investment_profiles import get_ticker_profile
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
 RESULTS_DIR = "backtest_results"
-HOLDING_DAYS = 5
-SIGNAL_COOLDOWN_DAYS = HOLDING_DAYS
-STOP_ATR_MULTIPLE = 1.5  # Stop-loss = entry - (ATR * 1.5)
-TARGET_ATR_MULTIPLE = 2.0  # Target = entry + (ATR * 2.0)
+DEFAULT_HOLDING_DAYS = 5
+DEFAULT_STOP_ATR_MULTIPLE = 1.5
+DEFAULT_TARGET_R_MULTIPLE = 2.0
 AMBIGUOUS_EXIT_POLICY = "conservative_stop"
 LONG_TRADE = "long_trade"
 LONG_AVOIDANCE = "long_avoidance"
@@ -68,7 +68,16 @@ BEARISH_RULES = {
 
 def run_proxy_backtest(ticker: str, years: int = 2):
     """Run walk-forward proxy backtest for a single ticker."""
-    log.info(f"📊 Proxy backtest: {ticker} ({years}y)")
+    profile = get_ticker_profile(ticker)
+    holding_days = profile.get("proxy_holding_days", DEFAULT_HOLDING_DAYS)
+    signal_cooldown_days = holding_days
+    stop_atr_multiple = profile.get("stop_atr_multiple", DEFAULT_STOP_ATR_MULTIPLE)
+    target_r_multiple = profile.get("target_r_multiple", DEFAULT_TARGET_R_MULTIPLE)
+
+    log.info(
+        f"📊 Proxy backtest: {ticker} ({years}y, "
+        f"profile={profile['profile_name']}, hold={holding_days}d)"
+    )
 
     # Fetch historical data
     df = yf.Ticker(ticker).history(period=f"{years}y")
@@ -87,11 +96,11 @@ def run_proxy_backtest(ticker: str, years: int = 2):
 
     benchmark_data = _fetch_benchmark_data(years)
     trades = []
-    last_signal_idx = -SIGNAL_COOLDOWN_DAYS
+    last_signal_idx = -signal_cooldown_days
 
     # Walk forward: check each day
-    for i in range(len(df) - HOLDING_DAYS - 1):
-        if i - last_signal_idx < SIGNAL_COOLDOWN_DAYS:
+    for i in range(len(df) - holding_days - 1):
+        if i - last_signal_idx < signal_cooldown_days:
             continue
 
         row = df.iloc[i]
@@ -107,15 +116,18 @@ def run_proxy_backtest(ticker: str, years: int = 2):
         atr = _safe_float(row.get("ATRr_14", entry_price * 0.02))
         if atr is None:
             atr = entry_price * 0.02
-        future = df.iloc[i + 1: i + 1 + HOLDING_DAYS]
+        future = df.iloc[i + 1: i + 1 + holding_days]
         benchmark_returns = _benchmark_returns_for_window(benchmark_data, future)
 
         if signal == "bullish":
-            stop_price = entry_price - (atr * STOP_ATR_MULTIPLE)
-            target_price = entry_price + (atr * TARGET_ATR_MULTIPLE)
+            stop_price = entry_price - (atr * stop_atr_multiple)
+            risk_amount = entry_price - stop_price
+            target_price = entry_price + (risk_amount * target_r_multiple)
             trade = _evaluate_trade(
                 ticker=ticker,
                 signal_date=row.name.strftime("%Y-%m-%d"),
+                profile=profile,
+                holding_days=holding_days,
                 direction=signal,
                 entry_price=entry_price,
                 stop_price=stop_price,
@@ -128,6 +140,8 @@ def run_proxy_backtest(ticker: str, years: int = 2):
             trade = _evaluate_long_avoidance(
                 ticker=ticker,
                 signal_date=row.name.strftime("%Y-%m-%d"),
+                profile=profile,
+                holding_days=holding_days,
                 reference_price=entry_price,
                 future_data=future,
                 benchmark_returns=benchmark_returns,
@@ -141,9 +155,9 @@ def run_proxy_backtest(ticker: str, years: int = 2):
         return
 
     # Compute and display metrics
-    metrics = _compute_metrics(trades)
+    metrics = _compute_metrics(trades, profile)
     _print_report(ticker, metrics, trades, years)
-    _save_results(ticker, metrics, trades, years)
+    _save_results(ticker, metrics, trades, years, profile)
 
 
 def _check_signal(row) -> str | None:
@@ -177,6 +191,8 @@ def _check_signal(row) -> str | None:
 def _evaluate_trade(
     ticker,
     signal_date,
+    profile,
+    holding_days,
     direction,
     entry_price,
     stop_price,
@@ -223,6 +239,8 @@ def _evaluate_trade(
         "ticker": ticker,
         "signal_date": signal_date,
         "evaluation_type": LONG_TRADE,
+        "investment_profile": profile["profile_name"],
+        "holding_days": holding_days,
         "direction": direction,
         "entry_price": _round_or_none(entry_price),
         "stop_price": _round_or_none(stop_price),
@@ -244,6 +262,8 @@ def _evaluate_trade(
 def _evaluate_long_avoidance(
     ticker,
     signal_date,
+    profile,
+    holding_days,
     reference_price,
     future_data,
     benchmark_returns=None,
@@ -277,6 +297,8 @@ def _evaluate_long_avoidance(
         "ticker": ticker,
         "signal_date": signal_date,
         "evaluation_type": LONG_AVOIDANCE,
+        "investment_profile": profile["profile_name"],
+        "holding_days": holding_days,
         "direction": "bearish",
         "action": "avoid_long",
         "reference_price": _round_or_none(reference_price),
@@ -444,18 +466,26 @@ def _round_or_none(value: float | None) -> float | None:
     return round(float(value), 2) if value is not None else None
 
 
-def _compute_metrics(records: list[dict]) -> dict:
+def _compute_metrics(records: list[dict], profile: dict | None = None) -> dict:
     """Compute aggregate performance metrics."""
     long_trades = [r for r in records if r.get("evaluation_type") == LONG_TRADE]
     avoidance = [r for r in records if r.get("evaluation_type") == LONG_AVOIDANCE]
+    profile = profile or {
+        "profile_name": "unknown",
+        "proxy_holding_days": DEFAULT_HOLDING_DAYS,
+        "stop_atr_multiple": DEFAULT_STOP_ATR_MULTIPLE,
+        "target_r_multiple": DEFAULT_TARGET_R_MULTIPLE,
+    }
 
     metrics = {
         "total_signals": len(records),
         "long_trade_signals": len(long_trades),
         "avoidance_signals": len(avoidance),
-        "signal_cooldown_days": SIGNAL_COOLDOWN_DAYS,
-        "stop_atr_multiple": STOP_ATR_MULTIPLE,
-        "target_atr_multiple": TARGET_ATR_MULTIPLE,
+        "investment_profile": profile["profile_name"],
+        "holding_days": profile.get("proxy_holding_days", DEFAULT_HOLDING_DAYS),
+        "signal_cooldown_days": profile.get("proxy_holding_days", DEFAULT_HOLDING_DAYS),
+        "stop_atr_multiple": profile.get("stop_atr_multiple", DEFAULT_STOP_ATR_MULTIPLE),
+        "target_r_multiple": profile.get("target_r_multiple", DEFAULT_TARGET_R_MULTIPLE),
     }
 
     if long_trades:
@@ -547,12 +577,17 @@ def _print_report(ticker: str, metrics: dict, trades: list[dict], years: int):
     log.info("=" * 60)
     log.info(f"PROXY BACKTEST: {ticker} ({years}y)")
     log.info("=" * 60)
+    log.info(f"  Profile: {metrics['investment_profile']} | Hold: {metrics['holding_days']} trading days")
     log.info(f"  Total signals: {metrics['total_signals']}")
     log.info(
         f"  Long trade signals: {metrics['long_trade_signals']} | "
         f"Long-avoidance signals: {metrics['avoidance_signals']}"
     )
     log.info(f"  Cooldown: {metrics['signal_cooldown_days']} trading days")
+    log.info(
+        f"  Risk model: stop {metrics['stop_atr_multiple']} ATR / "
+        f"target {metrics['target_r_multiple']}R"
+    )
 
     if metrics["long_trade_signals"]:
         log.info(f"  Long win rate: {metrics['win_rate']}%")
@@ -583,7 +618,7 @@ def _print_report(ticker: str, metrics: dict, trades: list[dict], years: int):
     log.info("=" * 60)
 
 
-def _save_results(ticker: str, metrics: dict, trades: list[dict], years: int):
+def _save_results(ticker: str, metrics: dict, trades: list[dict], years: int, profile: dict):
     """Save proxy backtest results to JSON."""
     Path(RESULTS_DIR).mkdir(exist_ok=True)
     today = datetime.now(TZ).strftime("%Y-%m-%d")
@@ -594,12 +629,13 @@ def _save_results(ticker: str, metrics: dict, trades: list[dict], years: int):
         "years": years,
         "run_date": today,
         "benchmarks": list(BENCHMARK_TICKERS),
+        "profile": profile,
         "rules": {"bullish": BULLISH_RULES, "bearish": BEARISH_RULES},
         "params": {
-            "holding_days": HOLDING_DAYS,
-            "signal_cooldown_days": SIGNAL_COOLDOWN_DAYS,
-            "stop_atr_multiple": STOP_ATR_MULTIPLE,
-            "target_atr_multiple": TARGET_ATR_MULTIPLE,
+            "holding_days": metrics["holding_days"],
+            "signal_cooldown_days": metrics["signal_cooldown_days"],
+            "stop_atr_multiple": metrics["stop_atr_multiple"],
+            "target_r_multiple": metrics["target_r_multiple"],
             "bearish_evaluation": "long_avoidance",
         },
         "metrics": metrics,
