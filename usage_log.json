@@ -169,6 +169,91 @@
           "cost_usd": 0.3201
         }
       ]
+    },
+    "2026-05-08": {
+      "tickers_analyzed": 9,
+      "total_calls": 9,
+      "analysis_calls": 9,
+      "review_calls": 0,
+      "input_tokens": 571836,
+      "output_tokens": 64999,
+      "web_searches": 30,
+      "cost_usd": 2.9905,
+      "model": "claude-sonnet-4-6",
+      "calls": [
+        {
+          "ticker": "MSFT",
+          "call_type": "analysis",
+          "input_tokens": 62378,
+          "output_tokens": 7574,
+          "web_searches": 4,
+          "cost_usd": 0.3407
+        },
+        {
+          "ticker": "ORCL",
+          "call_type": "analysis",
+          "input_tokens": 40323,
+          "output_tokens": 6817,
+          "web_searches": 3,
+          "cost_usd": 0.2532
+        },
+        {
+          "ticker": "VST",
+          "call_type": "analysis",
+          "input_tokens": 80361,
+          "output_tokens": 7724,
+          "web_searches": 4,
+          "cost_usd": 0.3969
+        },
+        {
+          "ticker": "OKLO",
+          "call_type": "analysis",
+          "input_tokens": 61722,
+          "output_tokens": 6745,
+          "web_searches": 3,
+          "cost_usd": 0.3163
+        },
+        {
+          "ticker": "SMR",
+          "call_type": "analysis",
+          "input_tokens": 67779,
+          "output_tokens": 7780,
+          "web_searches": 3,
+          "cost_usd": 0.35
+        },
+        {
+          "ticker": "IREN",
+          "call_type": "analysis",
+          "input_tokens": 57768,
+          "output_tokens": 7476,
+          "web_searches": 3,
+          "cost_usd": 0.3154
+        },
+        {
+          "ticker": "CORZ",
+          "call_type": "analysis",
+          "input_tokens": 64012,
+          "output_tokens": 6889,
+          "web_searches": 3,
+          "cost_usd": 0.3254
+        },
+        {
+          "ticker": "AVAV",
+          "call_type": "analysis",
+          "input_tokens": 76236,
+          "output_tokens": 6627,
+          "web_searches": 4,
+          "cost_usd": 0.3681
+        },
+        {
+          "ticker": "ONDS",
+          "call_type": "analysis",
+          "input_tokens": 61257,
+          "output_tokens": 7367,
+          "web_searches": 3,
+          "cost_usd": 0.3243
+        }
+      ]
     }
   }
 }
