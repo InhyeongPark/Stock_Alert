@@ -1,0 +1,510 @@
+{
+  "date": "2026-05-11",
+  "generated_at": "2026-05-11T09:26:18.509679-04:00",
+  "tickers": [
+    {
+      "ticker": "MSFT",
+      "current_price": 415.12,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "중립",
+      "direction": "neutral",
+      "entry_prices": [
+        415.5,
+        411.5,
+        399.0
+      ],
+      "stop_prices": [
+        408.5,
+        398.0,
+        387.0
+      ],
+      "outlook_short": "$412~$421 박스권 등락, $420.78 저항 돌파 시 $428~$430 단기 상승 시도 가능",
+      "outlook_mid": "SMA20 안착 여부 확인 후 $430~$435 회복 시도, OpenAI 리스크·CapEx 우려가 상방 제한",
+      "outlook_long": "AI 수익화 가속·Azure 40%+ 성장 지속 시 $460~$480 회복 가능, 단 120일 SMA($464) 하회 상태로 완전 회복에 시간 필요",
+      "key_reasons": [
+        "현재가가 중기 피보나치 0.382($415) + 최대 매물대 중심부($402~$417) + SMA20($416) 수렴 구간으로 기술적 지지 밀집",
+        "FY2026 Q3 AI 매출 run rate $370억(+123% YoY), Azure +40%, Copilot 2,000만 시트 돌파 등 펀더멘털 강세 유효",
+        "TCI·Duquesne·Tiger Global 헤지펀드 이탈, OpenAI 독점 접근권 종료, $1,900억 CapEx 부담, Google Cloud 63% 성장에 뒤처지는 Azure 경쟁력 우려가 복합적으로 상방 제한"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": true,
+        "ticker": "MSFT",
+        "question": "Will Microsoft Corporation (MSFT) hit (HIGH) $435 in May?",
+        "probability_yes_pct": 43.0,
+        "probability_no_pct": 57.0,
+        "question_direction": "unknown",
+        "polymarket_direction": "unknown",
+        "liquidity_usd": 1726.0,
+        "end_date": "2026-06-01T03:59:59.999Z",
+        "market_id": "2073895",
+        "url": "https://polymarket.com/event/will-msft-reach-435-in-may-2026"
+      },
+      "polymarket_comparison": {
+        "match": "중립",
+        "message": "Claude(neutral) vs Polymarket(unknown, 43.0%) — 한쪽 불확실, 추가 확인 필요",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "ORCL",
+      "current_price": 195.95,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        192.37,
+        188.89,
+        180.08
+      ],
+      "stop_prices": [
+        186.8,
+        182.67,
+        176.0
+      ],
+      "outlook_short": "$197~$200 저항 밀집 + 과매수 구간, 단기 $191~$193 눌림 후 방향 결정 예상",
+      "outlook_mid": "Q4 FY2026 실적(6월 중순) 앞두고 $200 돌파 여부가 핵심, 성공 시 $206~$210 목표",
+      "outlook_long": "AI 인프라 테마 + $553B RPO 백로그 기반 구조적 상승 여력, 애널리스트 평균 목표 $260 유효",
+      "key_reasons": [
+        "RSI 69.5 + Stoch K=91.6 과매수 극단 + $197~$200 저항 밀집으로 즉각 진입보다 풀백 대기가 Core Theme 프로파일에 부합",
+        "현재가가 120일 최대 매물대($188.89~$197.71) 상단 근처 — 매물 압력 최대 구간, 거래량 0.63x 미달로 돌파 컨빅션 부족",
+        "Q3 FY2026 매출 $171.9억(+22%), OCI +84%, RPO $5,530억 등 펀더멘털 강세 + DoD AI 계약 + Arete 상향 등 카탈리스트 유효"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "ORCL",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "VST",
+      "current_price": 147.72,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "중립",
+      "direction": "neutral",
+      "entry_prices": [
+        146.5,
+        142.5,
+        138.5
+      ],
+      "stop_prices": [
+        143.5,
+        138.0,
+        132.0
+      ],
+      "outlook_short": "기술적 하락 모멘텀 지속, $146~$149 지지 확인 필요, 추가 하락 시 $142까지 가능",
+      "outlook_mid": "Q1 어닝 소화 후 $155~$158(SMA20/50) 회복 시도, 최대 매물대 $157~$161 돌파 여부가 방향성 결정",
+      "outlook_long": "AI 전력 수요·Cogentrix 인수·Fitch 투자등급 업그레이드 등 펀더멘털 상승 논거 유효, 애널리스트 컨센서스 $233 목표가 장기 업사이드 지지",
+      "key_reasons": [
+        "Q1 EPS $1.47로 예상치 11.3% 상회했으나 주가 역설적 급락 — 매도 소화 국면 진행 중",
+        "현재가가 SMA20/50/200 전부 하회, RSI 39.75 과매도 근접, MACD 강한 음전환 — 단기 기술적 추세 약세",
+        "공매도 잔고 20.4% 급증(3.84% of float), 상단 최대 매물대 $157~$161(9700만주) 강한 저항 — 단기 반등 제한"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "VST",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "OKLO",
+      "current_price": 72.51,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "neutral",
+      "entry_prices": [
+        72.13,
+        68.57,
+        65.4
+      ],
+      "stop_prices": [
+        70.0,
+        67.0,
+        63.0
+      ],
+      "outlook_short": "5/12 Q1 어닝이 최대 변수; 어닝 서프라이즈 시 $78~$80 재도전, 실망 시 $65~$68 지지 테스트",
+      "outlook_mid": "NRC PDC 승인 + 14GW 파이프라인 테마 유효 시 $78~$86 매물대 공략 가능하나 SMA200($86)이 중기 저항",
+      "outlook_long": "AI 인프라 전력 수요·연방 정책 지원 테마 구조적 유효, 무수익 프리커머셜 프리미엄 리스크 내포하며 애널 평균 목표가 $116",
+      "key_reasons": [
+        "5/12 Q1 어닝 이벤트 리스크: 어닝 전 진입은 갭 리스크 내포, 어닝 반응 확인 후 진입이 원칙",
+        "NRC PDC 승인(5/6) 호재 반영 완료 후 되돌림 중, 현재가는 중기 피보나치 38.2%($72.0) 및 현재 매물대 하단 경계",
+        "공매도 잔고 19.7% Float(28.6M주) 고수준 + Days to Cover 3일 = 어닝 서프라이즈 시 Short Squeeze 잠재력 존재"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "OKLO",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "SMR",
+      "current_price": 12.55,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "neutral",
+      "entry_prices": [
+        12.62,
+        12.11,
+        11.63
+      ],
+      "stop_prices": [
+        11.85,
+        11.38,
+        10.86
+      ],
+      "outlook_short": "$12.69~$13.0 저항 테스트 가능, 5월 15일 옵션 만기 전 $12~$13 핀 가능성 높음",
+      "outlook_mid": "TVA PPA 계약 여부가 최대 변수, 확정 시 $14~$15 반등 / 부재 시 $10~$11 재하락 위험",
+      "outlook_long": "첫 원자로 2030년 이후 가동, 매출 공백 지속이나 AI 전력 수요+DOE 정책이 장기 테마 유효성 유지",
+      "key_reasons": [
+        "Q1 2026 매출 $0.6M으로 96% 급감, 어닝 쇼크 후 주가 억눌림 지속",
+        "공매도 비율 Float의 ~29~39%(기준일 4월 15일)로 극히 높아 뉴스 촉매 시 스퀴즈 가능성과 하락 압력 공존",
+        "SMA20($12.07)/SMA50($11.63) 위에서 유지 중이나 피보나치 50% 균형점($12.52)에서 방향성 결정 대기"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "SMR",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "IREN",
+      "current_price": 61.2,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        59.46,
+        58.38,
+        56.75
+      ],
+      "stop_prices": [
+        56.34,
+        54.33,
+        52.0
+      ],
+      "outlook_short": "CB 발행($2B) 희석 우려 + RSI 과열로 $56~$62 레인지 박스권 소화 가능성 높음, $62.43 저항 돌파 여부 주목",
+      "outlook_mid": "NVIDIA $3.4B 딜·ARR $3.1B 계약 모멘텀 유효, CB 수급 소화 완료 시 $65~$70 NVIDIA 콜 행사가 레벨 도전",
+      "outlook_long": "2026년 ARR $3.7B 달성 + 1.2GW AI 클라우드 가동 여부에 따라 $70~$76.87 재시험 가능, 레버리지 확대(D/E 1.38)와 CB 누적이 잠재 리스크",
+      "key_reasons": [
+        "NVIDIA와 $3.4B 5년 AI 클라우드 계약 + $2.1B 지분 옵션(행사가 $70) → AI 인프라 테마 핵심 수혜주로 재포지셔닝",
+        "오늘(5/11) $2B 전환사채 발행 발표 → 단기 희석 우려로 주가 압박, 수급 소화 전 신규 진입 리스크",
+        "RSI 67.57 + Stochastic 83/84 과매수 구간 + 120일 고점($65.61) 직전 저항 + 5일 55% 급등 후 조정 진입 중으로 공격적 진입은 부적합"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "IREN",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "CORZ",
+      "current_price": 22.92,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        22.92,
+        21.75,
+        20.4
+      ],
+      "stop_prices": [
+        21.8,
+        20.68,
+        19.93
+      ],
+      "outlook_short": "$23.63 저항 돌파 여부가 핵심 — 돌파 시 $25 재도전, 실패 시 $21.50 눌림목 테스트",
+      "outlook_mid": "CoreWeave 450MW 달성 및 신규 하이퍼스케일러 계약 발표 시 $25~$28 타겟 가능",
+      "outlook_long": "590MW 완전 빌링 + 1GW 신규 시드 가시화 시 $28~$32 가능하나 고밸류에이션·고객집중 리스크 상존",
+      "key_reasons": [
+        "Q1 2026 매출 $115.2M 어닝 비트 + $3.3B 채권 발행 완료로 강력한 펀더멘털 촉매 발생",
+        "공매도 비율 ~20%(63.84M주)로 상방 모멘텀 지속 시 Short Squeeze 가능성 내포",
+        "현재가 피보나치 38.2% 되돌림($22.79) 지지 구간 테스트 중, SMA20/50/200 정배열 유지로 기술적 추세 건재"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "CORZ",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "AVAV",
+      "current_price": 168.29,
+      "investment_profile": "growth_theme",
+      "investment_horizon": "2-6 months",
+      "entry_suitability": "관망",
+      "direction": "bearish",
+      "entry_prices": [],
+      "stop_prices": [],
+      "outlook_short": "RSI/Stoch 과매도 구간이나 반전 확인 없음, $164~$170 박스 또는 52주 저가 재테스트 위험",
+      "outlook_mid": "Q4 실적(2026-06-23) 전까지 $189~$190 저항 돌파 여부가 추세 반전 핵심, SCAR 손실·CFO 교체 불확실성 지속",
+      "outlook_long": "수주 $4.6B·펀딩백로그 $1.1B 기반 장기 재평가 가능하나 고점($408) 대비 -60% 낙폭 회복은 수분기 소요 예상",
+      "key_reasons": [
+        "SMA20/50/200 완전 데드크로스, 현재가 SMA200 대비 -37%로 하락 추세 압도적",
+        "현재가 매물대($166~$189)는 120일 최저 거래량 구간으로 지지력 취약, 위 $189~$212 최대 매물대(4,852만주) 강한 저항",
+        "SCAR 프로그램 종료·순손실(-13.93%)·내부자 매도·Q3 어닝 미스 등 펀더멘털 복합 악재, 반전 확인 전 진입 시 리스크 과도"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "1-3 week pullback or constructive momentum continuation",
+      "risk_style": "technical invalidation plus catalyst or backlog risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "AVAV",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "ONDS",
+      "current_price": 9.06,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "관망",
+      "direction": "neutral",
+      "entry_prices": [],
+      "stop_prices": [],
+      "outlook_short": "5/14 Q1 실적 발표 이벤트 리스크 — 가이던스 상회 시 $9.36 돌파 시도, 실망 시 $8.58 이하 낙폭 가속 위험",
+      "outlook_mid": "Mistral 합병 + $457M 백로그 기반 $10~$11 회복 가능하나, 34% 공매도 비율과 M&A 통합 리스크가 상방 제약",
+      "outlook_long": "2026년 $375M 매출 가이던스 이행 시 $12~$15 재도전 가능, 미이행 시 $7~$8 조정 리스크 공존",
+      "key_reasons": [
+        "5/14 Q1 실적 발표 이벤트 리스크 — 과거 패턴 상 평균 -3.77% 익일 움직임, 진입 전 결과 확인 필수",
+        "공매도 비율 34%로 극단적 수준 — 실적 서프라이즈 시 숏스퀴즈 잠재력 존재하나 반대로 하락 시 매도 압력 가중",
+        "기술적으로 RSI 41.9 + MACD 음전환 + 5일 연속 하락으로 모멘텀 부재, Stochastic 과매도권만 유일한 단기 반등 신호"
+      ],
+      "summary_parse_status": "ok",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": true,
+        "ticker": "ONDS",
+        "question": "Will Alphabet Inc. (GOOGL) hit (HIGH) $410 in May?",
+        "probability_yes_pct": 67.9,
+        "probability_no_pct": 32.1,
+        "question_direction": "unknown",
+        "polymarket_direction": "unknown",
+        "liquidity_usd": 3074.0,
+        "end_date": "2026-06-01T03:59:59.999Z",
+        "market_id": "2073979",
+        "url": "https://polymarket.com/event/will-googl-reach-410-in-may-2026"
+      },
+      "polymarket_comparison": {
+        "match": "중립",
+        "message": "Claude(neutral) vs Polymarket(unknown, 67.9%) — 한쪽 불확실, 추가 확인 필요",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 9,
+        "direction_counts": {
+          "neutral": 5,
+          "bullish": 3,
+          "bearish": 1
+        },
+        "warnings": []
+      }
+    }
+  ]
+}
