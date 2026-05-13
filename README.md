@@ -98,6 +98,9 @@ ENABLE_DISCORD_DIGEST = True     # Compact Discord digest
 ENABLE_POLYMARKET = True         # Optional prediction-market comparison
 ENABLE_POLYMARKET_CLAUDE_REVIEW = True   # Optional second-pass Claude review
 ENABLE_BACKTEST_EXPORT = False   # Reserved; backtests are currently manual
+REQUIRE_REGULAR_MARKET_SESSION = True    # Skip reports outside regular NYSE hours
+MAX_LIVE_PRICE_AGE_MINUTES = 20          # Stale-price cutoff during regular session
+SKIP_STALE_LIVE_PRICES = True            # Skip ticker alerts when live price is stale
 ```
 
 Recommended defaults:
@@ -197,7 +200,23 @@ on:
   workflow_dispatch:
 ```
 
-For precise daily timing, use cron-job.org to call GitHub's workflow dispatch endpoint at 9:00 AM America/New_York on trading days. `stock_report.py` still checks the NYSE calendar, so a mistaken trigger on a holiday exits without sending a report.
+For precise daily timing, use cron-job.org to call GitHub's workflow dispatch endpoint during regular NYSE hours, preferably after the open such as 9:45 AM America/New_York on trading days. `stock_report.py` checks both the NYSE calendar and regular-session status by default, so a mistaken trigger on a holiday, premarket, or after-hours exits without sending a live-price report.
+
+---
+
+## Price Freshness
+
+Alerts are anchored to a separate live price snapshot, not just the final row of one-year daily history.
+
+Current behavior:
+
+- Daily indicators use explicit `1d` unadjusted OHLCV from yfinance.
+- The alert anchor price first tries a timestamped `1m` yfinance bar from the latest regular session.
+- During the regular session, the price must be no older than `MAX_LIVE_PRICE_AGE_MINUTES`.
+- If a regular-session quote is stale and `SKIP_STALE_LIVE_PRICES = True`, that ticker is skipped instead of being labeled as current.
+- Saved JSON, Claude prompts, Discord, and email include `price_source`, `price_as_of`, `price_status`, `market_session`, and any `price_warning`.
+
+Important limitation: yfinance/Yahoo is not an exchange-certified real-time feed. For broker-grade live trading alerts, replace the price snapshot with a paid or broker-backed quote source.
 
 ---
 
@@ -367,6 +386,8 @@ Targeted checks should cover:
 - Backtests are manual so the daily report stays fast and predictable.
 - `ENABLE_BACKTEST_EXPORT` is currently reserved and not wired into the daily orchestrator.
 - `ENABLE_POLYMARKET_CLAUDE_REVIEW` adds optional second-pass confidence review but does not rewrite the original recommendation.
+- Live alerts are skipped outside regular NYSE hours by default so entries are not anchored to premarket/previous-close data while being labeled current.
+- yfinance price snapshots include freshness metadata but are still not broker-grade real-time quotes.
 - Daily OHLC data cannot prove intraday ordering, so ambiguous same-day outcomes are explicitly labeled.
 - Backtests separate executable long-trade metrics from bearish long-avoidance metrics.
 - Proxy backtest uses fixed rules with cooldown and ATR targets; changing those after seeing results creates overfitting risk.

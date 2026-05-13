@@ -67,6 +67,7 @@ def _build_stock_card(stock_data: dict, analysis: str, summary: dict | None = No
     change_arrow = "▲" if change >= 0 else "▼"
     analysis_html = _markdown_to_html(analysis)
     polymarket_html = _build_polymarket_section(summary) if summary else ""
+    price_basis_html = _format_price_basis(stock_data)
 
     return f"""
     <div style="background:#ffffff;border-radius:12px;padding:24px;margin-bottom:24px;
@@ -79,6 +80,7 @@ def _build_stock_card(stock_data: dict, analysis: str, summary: dict | None = No
                     <span style="color:#6b7280;font-weight:normal;">({ticker})</span>
                 </h2>
                 <span style="font-size:13px;color:#9ca3af;">{stock_data['sector']}</span>
+                {price_basis_html}
             </div>
             <div style="text-align:right;">
                 <div style="font-size:28px;font-weight:bold;color:#111827;">${price}</div>
@@ -92,6 +94,23 @@ def _build_stock_card(stock_data: dict, analysis: str, summary: dict | None = No
         </div>
         {polymarket_html}
     </div>"""
+
+
+def _format_price_basis(stock_data: dict) -> str:
+    status = escape(str(stock_data.get("price_status", "unknown")))
+    source = escape(str(stock_data.get("price_source", "unknown")))
+    as_of = escape(str(stock_data.get("price_as_of") or "N/A"))
+    warning = stock_data.get("price_warning")
+
+    warning_html = ""
+    if warning:
+        warning_html = f"<br><span style='color:#b45309;'>{escape(str(warning))}</span>"
+
+    return (
+        "<br><span style='font-size:12px;color:#64748b;'>"
+        f"Price basis: {status} | {source} | as of {as_of}"
+        f"{warning_html}</span>"
+    )
 
 
 def _build_polymarket_section(summary: dict) -> str:

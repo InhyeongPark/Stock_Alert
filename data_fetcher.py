@@ -4,11 +4,15 @@ Provides pre-computed compressed signals so Claude interprets rather than calcul
 """
 
 import logging
+from datetime import datetime
+from math import isfinite
 from pathlib import Path
 
 import yfinance as yf
 import pandas_ta as ta
 
+from config import MAX_LIVE_PRICE_AGE_MINUTES, SKIP_STALE_LIVE_PRICES, TZ
+from market_calendar import get_market_session_status
 from watchlist_parser import load_watchlist_tickers
 
 log = logging.getLogger(__name__)
@@ -33,7 +37,7 @@ def fetch_stock_data(ticker: str) -> dict | None:
 
     try:
         stock = yf.Ticker(ticker)
-        df = stock.history(period="1y")
+        df = stock.history(period="1y", interval="1d", auto_adjust=False)
 
         if df.empty or len(df) < 200:
             log.warning(f"{ticker}: insufficient data (rows={len(df)})")
@@ -51,7 +55,27 @@ def fetch_stock_data(ticker: str) -> dict | None:
 
         latest = df.iloc[-1]
         prev = df.iloc[-2]
-        current_price = latest["Close"]
+        price_snapshot = _fetch_price_snapshot(stock, df, ticker)
+        if _should_skip_for_stale_price(price_snapshot):
+            log.warning(
+                f"{ticker}: stale live price skipped "
+                f"(status={price_snapshot['price_status']}, "
+                f"as_of={price_snapshot.get('price_as_of')}, "
+                f"age={price_snapshot.get('price_age_minutes')})"
+            )
+            return None
+
+        current_price = price_snapshot["price"]
+        prev_close = price_snapshot.get("previous_close") or _safe_float(prev["Close"])
+        if current_price is None:
+            log.warning(f"{ticker}: no usable current/anchor price")
+            return None
+
+        daily_change_pct = (
+            (current_price - prev_close) / prev_close * 100
+            if prev_close
+            else 0
+        )
 
         # Support / Resistance (full-period extremes)
         highs = df["High"].rolling(window=10).max().dropna()
@@ -120,10 +144,21 @@ def fetch_stock_data(ticker: str) -> dict | None:
             "sector": sector,
             "market_cap": market_cap,
             "current_price": round(current_price, 2),
-            "prev_close": round(prev["Close"], 2),
-            "daily_change_pct": round(
-                (current_price - prev["Close"]) / prev["Close"] * 100, 2
-            ),
+            "prev_close": round(prev_close, 2),
+            "daily_change_pct": round(daily_change_pct, 2),
+            "price_source": price_snapshot["price_source"],
+            "price_as_of": price_snapshot.get("price_as_of"),
+            "price_retrieved_at": price_snapshot["price_retrieved_at"],
+            "price_age_minutes": price_snapshot.get("price_age_minutes"),
+            "price_status": price_snapshot["price_status"],
+            "price_is_stale": price_snapshot["price_is_stale"],
+            "price_warning": price_snapshot.get("price_warning"),
+            "market_session": price_snapshot["market_session"],
+            "market_open": price_snapshot.get("market_open"),
+            "market_close": price_snapshot.get("market_close"),
+            "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+            "indicator_as_of": _format_index_timestamp(latest.name),
+            "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
             "high_52w": round(df["High"].tail(252).max(), 2) if len(df) >= 252 else round(df["High"].max(), 2),
             "low_52w": round(df["Low"].tail(252).min(), 2) if len(df) >= 252 else round(df["Low"].min(), 2),
             # Technical Indicators
@@ -164,11 +199,223 @@ def fetch_stock_data(ticker: str) -> dict | None:
             "options_summary": options_summary,
         }
 
-        log.info(f"{ticker}: ${result['current_price']} (RSI={result['rsi_14']})")
+        log.info(
+            f"{ticker}: ${result['current_price']} "
+            f"(RSI={result['rsi_14']}, "
+            f"price_status={result['price_status']}, "
+            f"as_of={result['price_as_of']})"
+        )
         return result
 
     except Exception as e:
         log.error(f"{ticker}: data fetch failed: {e}")
+        return None
+
+
+# Helper: Live price snapshot
+
+def _fetch_price_snapshot(stock, daily_df, ticker: str) -> dict:
+    """Fetch a timestamped live anchor price, falling back only with clear labels."""
+    retrieved_at = datetime.now(TZ)
+    market_status = get_market_session_status(retrieved_at)
+    fast_info = _get_fast_info(stock)
+    intraday = _get_intraday_history(stock, ticker)
+
+    price = None
+    price_time = None
+    price_source = "unavailable"
+
+    if intraday is not None and not intraday.empty:
+        close_series = intraday["Close"].dropna()
+        if not close_series.empty:
+            price = _safe_float(close_series.iloc[-1])
+            price_time = _coerce_timestamp(close_series.index[-1])
+            price_source = "yfinance_1m_intraday_close"
+
+    if price is None:
+        price = _safe_float(_fast_info_value(fast_info, "lastPrice", "last_price"))
+        if price is not None:
+            price_source = "yfinance_fast_info_last_price"
+
+    if price is None:
+        price = _safe_float(daily_df.iloc[-1]["Close"])
+        price_time = _coerce_timestamp(daily_df.index[-1])
+        price_source = "yfinance_daily_close_fallback"
+
+    previous_close = _safe_float(
+        _fast_info_value(
+            fast_info,
+            "regularMarketPreviousClose",
+            "regular_market_previous_close",
+            "previousClose",
+            "previous_close",
+        )
+    )
+    if previous_close is None:
+        previous_close = _safe_float(daily_df.iloc[-2]["Close"])
+
+    price_age_minutes = _price_age_minutes(retrieved_at, price_time)
+    price_status, price_is_stale, price_warning = _classify_price_snapshot(
+        price_source=price_source,
+        price_age_minutes=price_age_minutes,
+        market_status=market_status,
+    )
+
+    return {
+        "price": price,
+        "previous_close": previous_close,
+        "price_source": price_source,
+        "price_as_of": price_time.isoformat() if price_time else None,
+        "price_retrieved_at": retrieved_at.isoformat(),
+        "price_age_minutes": (
+            round(price_age_minutes, 1)
+            if price_age_minutes is not None
+            else None
+        ),
+        "price_status": price_status,
+        "price_is_stale": price_is_stale,
+        "price_warning": price_warning,
+        "market_session": market_status["session_state"],
+        "market_open": market_status.get("market_open"),
+        "market_close": market_status.get("market_close"),
+    }
+
+
+def _get_intraday_history(stock, ticker: str):
+    try:
+        return stock.history(
+            period="2d",
+            interval="1m",
+            prepost=False,
+            auto_adjust=False,
+        )
+    except Exception as e:
+        log.warning(f"{ticker}: intraday quote unavailable: {e}")
+        return None
+
+
+def _get_fast_info(stock):
+    try:
+        return stock.fast_info
+    except Exception as e:
+        log.warning(f"fast_info unavailable: {e}")
+        return {}
+
+
+def _fast_info_value(fast_info, *keys):
+    for key in keys:
+        try:
+            value = getattr(fast_info, key)
+            if value is not None:
+                return value
+        except Exception:
+            pass
+
+        try:
+            value = fast_info.get(key)
+            if value is not None:
+                return value
+        except Exception:
+            pass
+
+        try:
+            value = fast_info[key]
+            if value is not None:
+                return value
+        except Exception:
+            pass
+
+    return None
+
+
+def _classify_price_snapshot(
+    price_source: str,
+    price_age_minutes: float | None,
+    market_status: dict,
+) -> tuple[str, bool, str | None]:
+    session_state = market_status["session_state"]
+    has_timestamp = price_age_minutes is not None
+
+    if session_state == "regular":
+        if (
+            price_source == "yfinance_1m_intraday_close"
+            and has_timestamp
+            and price_age_minutes <= MAX_LIVE_PRICE_AGE_MINUTES
+        ):
+            return "fresh", False, None
+
+        if has_timestamp:
+            return (
+                "stale_regular_session",
+                True,
+                f"Latest quote is {price_age_minutes:.1f} minutes old during regular session.",
+            )
+
+        return (
+            "timestamp_unavailable",
+            True,
+            "Live quote timestamp is unavailable during regular session.",
+        )
+
+    if price_source == "yfinance_1m_intraday_close" and has_timestamp:
+        return (
+            f"{session_state}_last_regular_bar",
+            False,
+            "Market is outside regular session; price is the latest regular-session minute bar.",
+        )
+
+    return (
+        f"{session_state}_unverified_quote",
+        session_state == "regular",
+        "Quote timestamp is unavailable; do not treat this as a verified live price.",
+    )
+
+
+def _should_skip_for_stale_price(snapshot: dict) -> bool:
+    return (
+        SKIP_STALE_LIVE_PRICES
+        and snapshot["market_session"] == "regular"
+        and snapshot["price_status"] != "fresh"
+    )
+
+
+def _price_age_minutes(retrieved_at: datetime, price_time: datetime | None) -> float | None:
+    if price_time is None:
+        return None
+    return max(0.0, (retrieved_at - price_time).total_seconds() / 60)
+
+
+def _coerce_timestamp(value) -> datetime | None:
+    if value is None:
+        return None
+
+    try:
+        if hasattr(value, "to_pydatetime"):
+            value = value.to_pydatetime()
+        if value.tzinfo is None:
+            return value.replace(tzinfo=TZ)
+        return value.astimezone(TZ)
+    except Exception:
+        return None
+
+
+def _format_index_timestamp(value) -> str | None:
+    timestamp = _coerce_timestamp(value)
+    if timestamp:
+        return timestamp.isoformat()
+    try:
+        return value.strftime("%Y-%m-%d")
+    except Exception:
+        return None
+
+
+def _safe_float(value) -> float | None:
+    try:
+        if value is None:
+            return None
+        result = float(value)
+        return result if isfinite(result) else None
+    except (TypeError, ValueError):
         return None
 
 

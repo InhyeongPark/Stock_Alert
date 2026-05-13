@@ -41,8 +41,9 @@ from config import (
     ENABLE_DISCORD_DIGEST,
     ENABLE_POLYMARKET,
     ENABLE_POLYMARKET_CLAUDE_REVIEW,
+    REQUIRE_REGULAR_MARKET_SESSION,
 )
-from market_calendar import is_market_open_today
+from market_calendar import get_market_session_status
 from data_fetcher import load_watchlist, fetch_stock_data
 from analyzer import analyze_with_claude, review_polymarket_with_claude
 from email_builder import build_email_html
@@ -59,9 +60,22 @@ def main():
     log.info(f"📈 Stock Report — {datetime.now(TZ).strftime('%Y-%m-%d %H:%M ET')}")
     log.info("=" * 60)
 
-    # Step 0: Market holiday check
-    if not is_market_open_today():
+    # Step 0: Market session check
+    market_status = get_market_session_status()
+    log.info(
+        "Market session: "
+        f"{market_status['session_state']} "
+        f"(now={market_status['now']}, "
+        f"open={market_status.get('market_open')}, "
+        f"close={market_status.get('market_close')})"
+    )
+
+    if not market_status["is_trading_day"]:
         log.info("Market is closed today. Skipping report.")
+        return
+
+    if REQUIRE_REGULAR_MARKET_SESSION and not market_status["is_regular_session"]:
+        log.info("Market is not in regular session. Skipping live-price alert.")
         return
 
     # Step 1: Load watchlist

@@ -36,6 +36,12 @@ TICKER_DELAY_SECONDS = 45       # Wait between tickers to avoid rate limit
 # ISO 10383 MIC code for NYSE (exchange_calendars standard)
 EXCHANGE_MIC = "XNYS"
 
+# Live price guardrails
+# Set to True for alerts that should be based on regular-session tradable prices.
+REQUIRE_REGULAR_MARKET_SESSION = True
+MAX_LIVE_PRICE_AGE_MINUTES = 20
+SKIP_STALE_LIVE_PRICES = True
+
 # ─── Feature Flags ───────────────────────────────────────────────
 ENABLE_EMAIL_REPORT = True
 ENABLE_SUMMARY_JSON = True       # Phase 1: save report_summary JSON

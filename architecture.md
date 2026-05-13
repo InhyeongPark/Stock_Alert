@@ -148,6 +148,9 @@ ENABLE_DISCORD_DIGEST = True     # 💬 Discord 아침 요약
 ENABLE_POLYMARKET = True         # 🔮 Polymarket 방향 대조
 ENABLE_POLYMARKET_CLAUDE_REVIEW = True   # 🔎 Claude 2차 관련성/확신도 검토
 ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
+REQUIRE_REGULAR_MARKET_SESSION = True    # 정규장 밖 라이브 가격 알림 스킵
+MAX_LIVE_PRICE_AGE_MINUTES = 20          # 정규장 가격 스냅샷 stale 기준
+SKIP_STALE_LIVE_PRICES = True            # stale 가격이면 티커 알림 스킵
 ```
 
 **의존성 관계:**
@@ -156,6 +159,13 @@ ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 - Polymarket은 관련 시장이 없으면 자동 N/A
 - Polymarket Claude review는 원본 분석을 다시 쓰지 않고 JSON에 `polymarket_claude_review`만 추가
 - usage_tracker는 `analysis`와 `polymarket_review` 호출을 구분해서 총 비용에 합산
+
+### Price Freshness Guardrail
+
+- `stock_report.py` checks actual NYSE session state, not only whether today is a trading day.
+- `data_fetcher.py` uses daily unadjusted OHLCV for indicators and a separate timestamped 1-minute yfinance snapshot as the alert anchor price.
+- The alert path stores and displays `price_source`, `price_as_of`, `price_status`, `market_session`, and stale-price warnings.
+- yfinance remains a delayed/free data source, so this is freshness validation rather than broker-grade real-time market data.
 
 ---
 

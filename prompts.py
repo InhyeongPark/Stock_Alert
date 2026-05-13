@@ -18,6 +18,7 @@ def build_tech_summary_ko(d: dict) -> str:
     swings = _format_swings_ko(d.get("swing_candidates", []))
     nearest_sr = _format_nearest_sr_ko(d.get("nearest_resistance", []), d.get("nearest_support", []))
     vol_zones = _format_volume_zones_ko(d)
+    price_freshness = _format_price_freshness_ko(d)
 
     return f"""
 === {d['company_name']} ({d['ticker']}) 기술적 분석 데이터 ===
@@ -26,6 +27,7 @@ def build_tech_summary_ko(d: dict) -> str:
 
 [가격 정보]
 현재가: ${d['current_price']}
+{price_freshness}
 전일 대비: {d['daily_change_pct']}%
 30일 최고/최저: ${d['price_history_summary']['30d_high']} / ${d['price_history_summary']['30d_low']}
 60일 최고/최저: ${d['price_history_summary']['60d_high']} / ${d['price_history_summary']['60d_low']}
@@ -73,6 +75,7 @@ def build_tech_summary_en(d: dict) -> str:
     swings = _format_swings_en(d.get("swing_candidates", []))
     nearest_sr = _format_nearest_sr_en(d.get("nearest_resistance", []), d.get("nearest_support", []))
     vol_zones = _format_volume_zones_en(d)
+    price_freshness = _format_price_freshness_en(d)
 
     return f"""
 === {d['company_name']} ({d['ticker']}) Technical Analysis Data ===
@@ -81,6 +84,7 @@ Market Cap: {d['market_cap']}
 
 [Price Information]
 Current: ${d['current_price']} | Daily Change: {d['daily_change_pct']}%
+{price_freshness}
 30D High/Low: ${d['price_history_summary']['30d_high']} / ${d['price_history_summary']['30d_low']}
 60D High/Low: ${d['price_history_summary']['60d_high']} / ${d['price_history_summary']['60d_low']}
 120D High: ${d['price_history_summary']['120d_high']} ({d['price_history_summary']['120d_high_date']})
@@ -115,6 +119,36 @@ Volume Ratio (Current/20D Avg): {d['volume_ratio']}x
 [Recent 5-Day OHLCV]
 Date | Open | High | Low | Close | Volume
 {ohlcv}"""
+
+
+# Price freshness formatting
+
+def _format_price_freshness_ko(d: dict) -> str:
+    lines = [
+        f"가격 기준 시각: {d.get('price_as_of', 'N/A')}",
+        f"가격 출처/상태: {d.get('price_source', 'unknown')} / {d.get('price_status', 'unknown')}",
+        f"시장 세션: {d.get('market_session', 'unknown')}",
+        f"지표 기준 시각: {d.get('indicator_as_of', 'N/A')}",
+        f"데이터 주의: {d.get('data_delay_note', 'N/A')}",
+    ]
+    warning = d.get("price_warning")
+    if warning:
+        lines.append(f"가격 경고: {warning}")
+    return "\n".join(lines)
+
+
+def _format_price_freshness_en(d: dict) -> str:
+    lines = [
+        f"Price as of: {d.get('price_as_of', 'N/A')}",
+        f"Price source/status: {d.get('price_source', 'unknown')} / {d.get('price_status', 'unknown')}",
+        f"Market session: {d.get('market_session', 'unknown')}",
+        f"Indicator as of: {d.get('indicator_as_of', 'N/A')}",
+        f"Data note: {d.get('data_delay_note', 'N/A')}",
+    ]
+    warning = d.get("price_warning")
+    if warning:
+        lines.append(f"Price warning: {warning}")
+    return "\n".join(lines)
 
 
 # Nearest S/R formatting
@@ -270,6 +304,7 @@ def get_analysis_prompt(stock_data: dict, language: str) -> str:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - 출처와 기준일이 없는 최신 데이터는 반드시 N/A로 표기하세요. 추정하지 마세요.
 - 가격 추천(진입/손절)은 반드시 위에 제공된 데이터와 현재가 ${price} 기준으로 하세요.
+- 가격 상태가 fresh가 아니거나 정규장 현재가가 아니면 공격적 진입을 피하고, 가격 기준 시각/상태의 한계를 명시하세요.
 - 각 섹션은 핵심 근거 중심으로 간결하게 작성하세요. 장황한 설명보다 근거 있는 짧은 판단이 낫습니다.
 - "콜+풋 합산 OI 최대 행사가"는 실제 max pain 계산이 아닙니다. 과대해석하지 마세요.
 - 피보나치 분석 시 "단기 스윙 후보"와 "30/60/120일 고저점"을 참고하여 현재 추세에 맞는 유의미한 기준점을 직접 판단하세요.
@@ -370,6 +405,7 @@ write a comprehensive analysis report.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Any latest data without a source and date MUST be marked N/A. Do not estimate.
 - All price recommendations (entry/stop-loss) must be based on the data above and current price ${price}.
+- If `price_status` is not fresh or the price is not from regular-session data, avoid aggressive entries and state the price-timestamp limitation.
 - Write each section concisely, focusing on key rationale. Short, evidence-based judgment > long explanations.
 - "Highest Combined OI Strike" is NOT a true max pain calculation. Do not over-interpret it.
 - For Fibonacci: use the short-term swing candidates and 30/60/120D highs/lows to identify meaningful swing points yourself.

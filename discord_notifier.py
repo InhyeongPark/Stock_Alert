@@ -216,6 +216,7 @@ def _build_embed(summary: dict) -> dict | None:
     fields = [
         _field("💰 현재가", f"${price}", True),
         _field("📊 방향", f"{direction.upper()} {emoji}", True),
+        _field("⏱ 가격 기준", _format_price_basis(summary), False),
         _field("🧭 프로파일", profile_str, False),
         _field("🎯 진입가 (1st/2nd/3rd)", entry_str, False),
         _field("🛑 손절가 (1st/2nd/3rd)", stop_str, False),
@@ -253,6 +254,17 @@ def _build_embed(summary: dict) -> dict | None:
         "fields": fields,
         "footer": {"text": _truncate(f"Entry Suitability: {suitability}", 2048)},
     }
+
+
+def _format_price_basis(summary: dict) -> str:
+    status = summary.get("price_status", "unknown")
+    source = summary.get("price_source", "unknown")
+    as_of = summary.get("price_as_of") or "N/A"
+    warning = summary.get("price_warning")
+    text = f"{status} | {source}\nas of: {as_of}"
+    if warning:
+        text += f"\n{warning}"
+    return text
 
 
 def _field(name: str, value, inline: bool, value_limit: int = 300) -> dict:

@@ -109,7 +109,7 @@ def _try_parse_json_block(text: str) -> dict | None:
 def _normalize_summary(summary: dict, ticker: str, stock_data: dict) -> dict:
     """Ensure downstream Discord/backtest code sees stable field types."""
     summary.setdefault("ticker", ticker)
-    summary.setdefault("current_price", stock_data.get("current_price"))
+    _normalize_price_fields(summary, stock_data)
     profile_context = profile_context_for_summary(ticker)
     for key, value in profile_context.items():
         summary.setdefault(key, value)
@@ -125,6 +125,51 @@ def _normalize_summary(summary: dict, ticker: str, stock_data: dict) -> dict:
     summary["key_reasons"] = _as_list(summary.get("key_reasons"))
 
     return summary
+
+
+def _normalize_price_fields(summary: dict, stock_data: dict) -> None:
+    """Keep downstream alerts anchored to the canonical fetched price."""
+    canonical_price = stock_data.get("current_price")
+    claude_price = summary.get("current_price")
+
+    if canonical_price is not None:
+        if (
+            claude_price is not None
+            and _float_or_none(claude_price) != _float_or_none(canonical_price)
+        ):
+            summary["claude_current_price"] = claude_price
+        summary["current_price"] = canonical_price
+    else:
+        summary.setdefault("current_price", None)
+
+    for key in (
+        "prev_close",
+        "daily_change_pct",
+        "price_source",
+        "price_as_of",
+        "price_retrieved_at",
+        "price_age_minutes",
+        "price_status",
+        "price_is_stale",
+        "price_warning",
+        "market_session",
+        "market_open",
+        "market_close",
+        "data_delay_note",
+        "indicator_as_of",
+        "indicator_basis",
+    ):
+        if key in stock_data:
+            summary[key] = stock_data.get(key)
+
+
+def _float_or_none(value) -> float | None:
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _as_list(value) -> list:
