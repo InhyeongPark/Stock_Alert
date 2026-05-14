@@ -8,6 +8,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    cron-job.org (9:00 AM ET)                     │
+│                    waits until 9:45 ET if pre-market             │
 │                    External trigger → GitHub Actions             │
 └────────────────────────────┬────────────────────────────────────┘
                              │ workflow_dispatch
@@ -149,6 +150,9 @@ ENABLE_POLYMARKET = True         # 🔮 Polymarket 방향 대조
 ENABLE_POLYMARKET_CLAUDE_REVIEW = True   # 🔎 Claude 2차 관련성/확신도 검토
 ENABLE_BACKTEST_EXPORT = False   # 📊 백테스트 데이터 export
 REQUIRE_REGULAR_MARKET_SESSION = True    # 정규장 밖 라이브 가격 알림 스킵
+WAIT_FOR_REGULAR_SESSION_ON_PREMARKET = True  # 09:00 조기 트리거면 정규장까지 대기
+REGULAR_SESSION_START_DELAY_MINUTES = 15  # 일반 NYSE 거래일 기준 09:45 ET 목표
+MAX_PREMARKET_WAIT_MINUTES = 50           # 너무 이른 트리거는 대기하지 않고 스킵
 MAX_LIVE_PRICE_AGE_MINUTES = 20          # 정규장 가격 스냅샷 stale 기준
 SKIP_STALE_LIVE_PRICES = True            # stale 가격이면 티커 알림 스킵
 ```
@@ -260,4 +264,22 @@ python proxy_backtest.py ALL
 
 # 3. Live 백테스트 (JSON 쌓인 후)
 python backtester.py --days 30
+```
+
+---
+
+## Fast Market Open Snapshot
+
+- `ENABLE_DISCORD_OPEN_SNAPSHOT = True` sends a rule-based Discord snapshot before Claude analysis.
+- `stock_report.py` now fetches lightweight ticker data first, sends `[FAST] Market Open Snapshot`, then continues with the full fetch, Claude, Polymarket, JSON, detailed Discord digest, and email.
+- The lightweight snapshot fetch skips slower company metadata and options-chain enrichment.
+- The snapshot score uses current price, daily move, 20/50DMA position, RSI, MACD histogram, volume ratio, and price freshness.
+- The Discord message starts with:
+
+```text
++3 이상: bullish bias
++1~+2: mildly bullish
+0 근처: mixed / neutral
+-1~-2: mildly bearish
+-3 이하: bearish bias
 ```

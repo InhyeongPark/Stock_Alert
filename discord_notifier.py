@@ -25,6 +25,14 @@ log = logging.getLogger(__name__)
 DISCORD_MAX_EMBEDS_PER_MESSAGE = 10
 DISCORD_SAFE_EMBED_CHAR_BUDGET = 5500
 
+BIAS_SCORE_GUIDE = "\n".join([
+    "+3 이상: bullish bias",
+    "+1~+2: mildly bullish",
+    "0 근처: mixed / neutral",
+    "-1~-2: mildly bearish",
+    "-3 이하: bearish bias",
+])
+
 # Color mapping for Discord embeds
 DIRECTION_COLORS = {
     "bullish": 0x22C55E,       # green
@@ -108,6 +116,52 @@ def send_discord_digest(summaries: list[dict]) -> bool:
 
     if all_sent:
         log.info(f"✅ Discord digest sent ({len(embeds)} tickers, {len(chunks)} message(s))")
+    return all_sent
+
+
+def send_market_open_snapshot(stock_data_list: list[dict]) -> bool:
+    """Send a fast rule-based market-open snapshot before Claude analysis."""
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+    if not webhook_url:
+        log.error("??DISCORD_WEBHOOK_URL not set")
+        return False
+
+    embeds = []
+    for stock_data in stock_data_list:
+        embed = _build_market_open_embed(stock_data)
+        if embed:
+            embeds.append(embed)
+
+    if not embeds:
+        log.warning("No market-open snapshot embeds to send")
+        return False
+
+    now = datetime.now(TZ)
+    date_str = now.strftime("%Y-%m-%d %H:%M ET")
+    content = (
+        f"**[FAST] Market Open Snapshot** - {date_str}\n"
+        "Rule-based opening bias only; detailed Claude report follows.\n"
+        "```text\n"
+        f"{BIAS_SCORE_GUIDE}\n"
+        "```"
+    )
+
+    chunks = _chunk_embeds(embeds)
+    all_sent = True
+    for index, chunk in enumerate(chunks, start=1):
+        payload = {
+            "content": _truncate(_format_chunk_content(content, index, len(chunks)), 2000),
+            "embeds": chunk,
+            "allowed_mentions": {"parse": []},
+        }
+        if not _post_webhook(webhook_url, payload, f"market-open snapshot {index}/{len(chunks)}"):
+            all_sent = False
+
+    if all_sent:
+        log.info(
+            f"??Market-open Discord snapshot sent "
+            f"({len(embeds)} tickers, {len(chunks)} message(s))"
+        )
     return all_sent
 
 
@@ -256,6 +310,153 @@ def _build_embed(summary: dict) -> dict | None:
     }
 
 
+def _build_market_open_embed(stock_data: dict) -> dict | None:
+    ticker = stock_data.get("ticker", "?")
+    bias = _calculate_opening_bias(stock_data)
+    score = bias["score"]
+    label = bias["label"]
+
+    price = _format_money(stock_data.get("current_price"))
+    change = _format_signed_pct(stock_data.get("daily_change_pct"))
+    rsi = _format_number(stock_data.get("rsi_14"), digits=1)
+    macd_hist = _format_number(stock_data.get("macd_hist"), digits=4, signed=True)
+    volume_ratio = _format_number(stock_data.get("volume_ratio"), digits=2)
+    sma_20 = _format_money(stock_data.get("sma_20"))
+    sma_50 = _format_money(stock_data.get("sma_50"))
+
+    reasons = "\n".join(f"- {reason}" for reason in bias["reasons"][:4])
+    if not reasons:
+        reasons = "N/A"
+
+    return {
+        "title": _truncate(f"{ticker} - {label}", 256),
+        "color": _opening_bias_color(score),
+        "fields": [
+            _field("Bias score", f"{score:+d} | confidence: {bias['confidence']}", True),
+            _field("Price / day move", f"{price} | {change}", True),
+            _field("Technicals", f"RSI {rsi} | MACD hist {macd_hist} | volume {volume_ratio}x", False),
+            _field("Moving averages", f"20DMA {sma_20} | 50DMA {sma_50}", False),
+            _field("Why", reasons, False, value_limit=500),
+            _field("Price basis", _format_price_basis(stock_data), False),
+        ],
+        "footer": {"text": "Rule-based opening snapshot; not the detailed Claude recommendation."},
+    }
+
+
+def _calculate_opening_bias(stock_data: dict) -> dict:
+    score = 0
+    reasons: list[str] = []
+
+    current_price = _number_or_none(stock_data.get("current_price"))
+    daily_change_pct = _number_or_none(stock_data.get("daily_change_pct"))
+    sma_20 = _number_or_none(stock_data.get("sma_20"))
+    sma_50 = _number_or_none(stock_data.get("sma_50"))
+    rsi = _number_or_none(stock_data.get("rsi_14"))
+    macd_hist = _number_or_none(stock_data.get("macd_hist"))
+    volume_ratio = _number_or_none(stock_data.get("volume_ratio"))
+
+    if daily_change_pct is not None:
+        if daily_change_pct >= 0.75:
+            score += 1
+            reasons.append(f"Opening strength: {daily_change_pct:+.2f}% vs previous close")
+        elif daily_change_pct <= -0.75:
+            score -= 1
+            reasons.append(f"Opening weakness: {daily_change_pct:+.2f}% vs previous close")
+        else:
+            reasons.append(f"Muted opening move: {daily_change_pct:+.2f}%")
+
+    if current_price is not None and sma_20:
+        if current_price > sma_20:
+            score += 1
+            reasons.append("Price is above 20DMA")
+        elif current_price < sma_20:
+            score -= 1
+            reasons.append("Price is below 20DMA")
+
+    if current_price is not None and sma_50:
+        if current_price > sma_50:
+            score += 1
+            reasons.append("Price is above 50DMA")
+        elif current_price < sma_50:
+            score -= 1
+            reasons.append("Price is below 50DMA")
+
+    if rsi is not None:
+        if 55 <= rsi <= 75:
+            score += 1
+            reasons.append(f"RSI momentum is constructive ({rsi:.1f})")
+        elif rsi < 45:
+            score -= 1
+            reasons.append(f"RSI is weak ({rsi:.1f})")
+        elif rsi > 75:
+            reasons.append(f"RSI is extended ({rsi:.1f}); watch reversal risk")
+        else:
+            reasons.append(f"RSI is neutral ({rsi:.1f})")
+
+    if macd_hist is not None:
+        if macd_hist > 0:
+            score += 1
+            reasons.append("MACD histogram is positive")
+        elif macd_hist < 0:
+            score -= 1
+            reasons.append("MACD histogram is negative")
+
+    if volume_ratio is not None and volume_ratio >= 1.3:
+        if daily_change_pct is not None and daily_change_pct >= 0.25:
+            score += 1
+            reasons.append(f"Elevated volume confirms upside move ({volume_ratio:.2f}x)")
+        elif daily_change_pct is not None and daily_change_pct <= -0.25:
+            score -= 1
+            reasons.append(f"Elevated volume confirms downside move ({volume_ratio:.2f}x)")
+        else:
+            reasons.append(f"Elevated volume without clear direction ({volume_ratio:.2f}x)")
+
+    price_status = stock_data.get("price_status", "unknown")
+    if price_status != "fresh":
+        reasons.insert(0, f"Price status is {price_status}; treat bias cautiously")
+
+    return {
+        "score": score,
+        "label": _opening_bias_label(score),
+        "confidence": _opening_bias_confidence(score, price_status),
+        "reasons": reasons,
+    }
+
+
+def _opening_bias_label(score: int) -> str:
+    if score >= 3:
+        return "bullish bias"
+    if score >= 1:
+        return "mildly bullish"
+    if score <= -3:
+        return "bearish bias"
+    if score <= -1:
+        return "mildly bearish"
+    return "mixed / neutral"
+
+
+def _opening_bias_confidence(score: int, price_status: str) -> str:
+    if price_status != "fresh":
+        return "low"
+    if abs(score) >= 3:
+        return "high"
+    if abs(score) >= 2:
+        return "medium"
+    return "low"
+
+
+def _opening_bias_color(score: int) -> int:
+    if score >= 3:
+        return 0x22C55E
+    if score >= 1:
+        return 0x84CC16
+    if score <= -3:
+        return 0xEF4444
+    if score <= -1:
+        return 0xF97316
+    return 0xF59E0B
+
+
 def _format_price_basis(summary: dict) -> str:
     status = summary.get("price_status", "unknown")
     source = summary.get("price_source", "unknown")
@@ -265,6 +466,37 @@ def _format_price_basis(summary: dict) -> str:
     if warning:
         text += f"\n{warning}"
     return text
+
+
+def _number_or_none(value) -> float | None:
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _format_money(value) -> str:
+    number = _number_or_none(value)
+    if number is None:
+        return "N/A"
+    return f"${number:.2f}"
+
+
+def _format_number(value, digits: int = 2, signed: bool = False) -> str:
+    number = _number_or_none(value)
+    if number is None:
+        return "N/A"
+    sign = "+" if signed and number > 0 else ""
+    return f"{sign}{number:.{digits}f}"
+
+
+def _format_signed_pct(value) -> str:
+    number = _number_or_none(value)
+    if number is None:
+        return "N/A"
+    return f"{number:+.2f}%"
 
 
 def _field(name: str, value, inline: bool, value_limit: int = 300) -> dict:

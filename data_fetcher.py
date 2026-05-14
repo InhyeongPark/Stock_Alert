@@ -31,7 +31,7 @@ def load_watchlist(filepath: str) -> list[str]:
     return []
 
 
-def fetch_stock_data(ticker: str) -> dict | None:
+def fetch_stock_data(ticker: str, include_enrichment: bool = True) -> dict | None:
     """Collect price data and calculate technical indicators for a single ticker."""
     log.info(f"Collecting data for: {ticker}")
 
@@ -95,11 +95,16 @@ def fetch_stock_data(ticker: str) -> dict | None:
         current_volume = latest["Volume"]
         volume_ratio = current_volume / avg_volume_20 if avg_volume_20 > 0 else 1.0
 
-        # Basic info
-        info = stock.info
-        company_name = info.get("shortName", ticker)
-        market_cap = info.get("marketCap", "N/A")
-        sector = info.get("sector", "N/A")
+        # Basic info. Skip slower metadata calls for the fast opening snapshot.
+        if include_enrichment:
+            info = stock.info
+            company_name = info.get("shortName", ticker)
+            market_cap = info.get("marketCap", "N/A")
+            sector = info.get("sector", "N/A")
+        else:
+            company_name = ticker
+            market_cap = "N/A"
+            sector = "N/A"
 
         # Price history summary
         high_120d = df["High"].tail(120)
@@ -136,7 +141,13 @@ def fetch_stock_data(ticker: str) -> dict | None:
         )
 
         # Options data (2 expirations, renamed OI strike)
-        options_summary = _fetch_options_summary(stock, current_price)
+        if include_enrichment:
+            options_summary = _fetch_options_summary(stock, current_price)
+        else:
+            options_summary = {
+                "available": False,
+                "reason": "Skipped for fast market-open snapshot.",
+            }
 
         result = {
             "ticker": ticker,

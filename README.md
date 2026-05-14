@@ -2,7 +2,7 @@
 
 Daily stock analysis pipeline for a personal watchlist.
 
-The system collects market data, asks Claude for a detailed analysis, sends a full email report, saves a machine-readable JSON summary, optionally sends a Discord digest, optionally compares direction with Polymarket, and keeps the JSON history needed for later live backtesting.
+The system collects market data, sends a fast rule-based Discord market-open snapshot, asks Claude for a detailed analysis, sends a full email report, saves a machine-readable JSON summary, optionally sends a detailed Discord digest, optionally compares direction with Polymarket, and keeps the JSON history needed for later live backtesting.
 
 > This is an analysis and journaling tool, not financial advice.
 
@@ -26,7 +26,7 @@ stock_report.py
     +-- email_builder.py         full HTML email
     +-- email_sender.py          Gmail SMTP
     +-- summary_builder.py       report_summaries/YYYY-MM-DD.json
-    +-- discord_notifier.py      compact Discord digest
+    +-- discord_notifier.py      fast snapshot + compact Discord digest
     +-- polymarket_client.py     optional market direction check
     +-- usage_tracker.py         usage_log.json
 ```
@@ -46,7 +46,8 @@ That means the saved JSON summaries remain in the repository and can later be us
 
 - Detailed email report with news, technicals, options/liquidity, entries, stops, and rationale.
 - Machine-readable JSON summary per ticker for automation and backtesting.
-- Discord morning digest for fast mobile review.
+- Fast Discord market-open snapshot for early technical bias.
+- Detailed Discord morning digest for mobile review after Claude finishes.
 - Optional Polymarket direction comparison.
 - API usage and monthly cost tracking.
 - NYSE holiday/weekend skip logic.
@@ -95,10 +96,14 @@ Edit `config.py`:
 ENABLE_EMAIL_REPORT = True       # Full HTML email
 ENABLE_SUMMARY_JSON = True       # Required for Discord/backtesting history
 ENABLE_DISCORD_DIGEST = True     # Compact Discord digest
+ENABLE_DISCORD_OPEN_SNAPSHOT = True  # Fast rule-based Discord snapshot before Claude
 ENABLE_POLYMARKET = True         # Optional prediction-market comparison
 ENABLE_POLYMARKET_CLAUDE_REVIEW = True   # Optional second-pass Claude review
 ENABLE_BACKTEST_EXPORT = False   # Reserved; backtests are currently manual
 REQUIRE_REGULAR_MARKET_SESSION = True    # Skip reports outside regular NYSE hours
+WAIT_FOR_REGULAR_SESSION_ON_PREMARKET = True  # Let early triggers wait for the open
+REGULAR_SESSION_START_DELAY_MINUTES = 15  # Wait until 9:45 ET on normal NYSE days
+MAX_PREMARKET_WAIT_MINUTES = 50           # Bounded wait for accidental early triggers
 MAX_LIVE_PRICE_AGE_MINUTES = 20          # Stale-price cutoff during regular session
 SKIP_STALE_LIVE_PRICES = True            # Skip ticker alerts when live price is stale
 ```
@@ -108,8 +113,9 @@ Recommended defaults:
 - Keep `ENABLE_SUMMARY_JSON = True` so GitHub Actions accumulates backtestable history.
 - Set `ENABLE_POLYMARKET = False` if matching quality is not good enough for your watchlist.
 - Set `ENABLE_POLYMARKET_CLAUDE_REVIEW = False` if you want to avoid extra Claude calls.
-- Use `ENABLE_DISCORD_DIGEST = True` only after adding `DISCORD_WEBHOOK_URL`.
-- Discord sends before the detailed email. If email arrives but Discord does not, check the GitHub Actions log for missing/invalid `DISCORD_WEBHOOK_URL` or Discord webhook HTTP errors.
+- Use Discord flags only after adding `DISCORD_WEBHOOK_URL`.
+- Keep `ENABLE_DISCORD_OPEN_SNAPSHOT = True` if you want the 9:45-ish rule-based opening bias before the slower Claude report.
+- The fast Discord snapshot sends before Claude. The detailed Discord digest sends before the detailed email. If email arrives but Discord does not, check the GitHub Actions log for missing/invalid `DISCORD_WEBHOOK_URL` or Discord webhook HTTP errors.
 
 ---
 
@@ -200,7 +206,25 @@ on:
   workflow_dispatch:
 ```
 
-For precise daily timing, use cron-job.org to call GitHub's workflow dispatch endpoint during regular NYSE hours, preferably after the open such as 9:45 AM America/New_York on trading days. `stock_report.py` checks both the NYSE calendar and regular-session status by default, so a mistaken trigger on a holiday, premarket, or after-hours exits without sending a live-price report.
+For precise daily timing, use cron-job.org to call GitHub's workflow dispatch endpoint during regular NYSE hours, preferably after the open such as 9:45 AM America/New_York on trading days. If cron-job.org fires shortly before the open, `stock_report.py` can now wait until the regular-session data target, currently 9:45 AM ET on normal NYSE days, before fetching live prices. It still exits on holidays, after-hours runs, and premarket runs that are earlier than `MAX_PREMARKET_WAIT_MINUTES`.
+
+---
+
+## Fast Discord Snapshot
+
+When `ENABLE_DISCORD_OPEN_SNAPSHOT = True`, `stock_report.py` first fetches lightweight ticker data, sends a fast `[FAST] Market Open Snapshot` to Discord, then continues into the full data fetch, Claude analysis, Polymarket enrichment, JSON persistence, the detailed Discord digest, and email.
+
+The fast snapshot is rule-based and uses current price, day move, 20/50DMA position, RSI, MACD histogram, volume ratio, and price freshness. It skips slower company metadata and options-chain enrichment so it can arrive much closer to the open. It is an opening technical bias, not the final Claude recommendation.
+
+The Discord message begins with this score guide:
+
+```text
++3 이상: bullish bias
++1~+2: mildly bullish
+0 근처: mixed / neutral
+-1~-2: mildly bearish
+-3 이하: bearish bias
+```
 
 ---
 
@@ -386,7 +410,7 @@ Targeted checks should cover:
 - Backtests are manual so the daily report stays fast and predictable.
 - `ENABLE_BACKTEST_EXPORT` is currently reserved and not wired into the daily orchestrator.
 - `ENABLE_POLYMARKET_CLAUDE_REVIEW` adds optional second-pass confidence review but does not rewrite the original recommendation.
-- Live alerts are skipped outside regular NYSE hours by default so entries are not anchored to premarket/previous-close data while being labeled current.
+- Live alerts require regular NYSE prices by default. Short premarket dispatches can wait for the open, while holidays, after-hours runs, and very early triggers still exit.
 - yfinance price snapshots include freshness metadata but are still not broker-grade real-time quotes.
 - Daily OHLC data cannot prove intraday ordering, so ambiguous same-day outcomes are explicitly labeled.
 - Backtests separate executable long-trade metrics from bearish long-avoidance metrics.
