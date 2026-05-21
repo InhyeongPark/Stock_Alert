@@ -8,3 +8,4 @@ IREN      high_vol_swing   ai_infrastructure,energy
 CORZ      high_vol_swing   ai_infrastructure,compute
 AVAV      growth_theme     defense_ai
 ONDS      high_vol_swing   defense_ai
+RDW       high_vol_swing   space,defense
