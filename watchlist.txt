@@ -1,11 +1,2 @@
 # ticker  profile          themes
-MSFT      core_theme       ai_infrastructure,software_platform
-ORCL      core_theme       ai_infrastructure,software_platform
-VST       core_theme       ai_infrastructure,energy
-OKLO      high_vol_swing   ai_infrastructure,nuclear
-SMR       high_vol_swing   ai_infrastructure,nuclear
-IREN      high_vol_swing   ai_infrastructure,energy
-CORZ      high_vol_swing   ai_infrastructure,compute
-AVAV      growth_theme     defense_ai
-ONDS      high_vol_swing   defense_ai
 RDW       high_vol_swing   space,defense
