@@ -1048,6 +1048,35 @@
           "cost_usd": 0.3557
         }
       ]
+    },
+    "2026-05-26": {
+      "tickers_analyzed": 2,
+      "total_calls": 2,
+      "analysis_calls": 2,
+      "review_calls": 0,
+      "input_tokens": 124122,
+      "output_tokens": 14327,
+      "web_searches": 7,
+      "cost_usd": 0.6573,
+      "model": "claude-sonnet-4-6",
+      "calls": [
+        {
+          "ticker": "MSFT",
+          "call_type": "analysis",
+          "input_tokens": 55450,
+          "output_tokens": 6837,
+          "web_searches": 3,
+          "cost_usd": 0.2989
+        },
+        {
+          "ticker": "ORCL",
+          "call_type": "analysis",
+          "input_tokens": 68672,
+          "output_tokens": 7490,
+          "web_searches": 4,
+          "cost_usd": 0.3584
+        }
+      ]
     }
   }
 }

@@ -1,0 +1,154 @@
+{
+  "date": "2026-05-26",
+  "generated_at": "2026-05-26T10:05:36.348349-04:00",
+  "tickers": [
+    {
+      "ticker": "MSFT",
+      "current_price": 415.5,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "중립",
+      "direction": "neutral",
+      "entry_prices": [
+        412.14,
+        406.0,
+        400.5
+      ],
+      "stop_prices": [
+        407.0,
+        399.0,
+        394.0
+      ],
+      "outlook_short": "피보나치 50% 되돌림($415.36) 지지 여부 테스트 중, $411~418 박스권 등락 예상",
+      "outlook_mid": "Azure 성장·AI Capex 모멘텀 유효, $424~433 매물대 재진입 시 상방 탄력 회복 기대",
+      "outlook_long": "컨센 목표가 $560~587, 7/28 어닝+AI 인프라 테마 장기 구조 강건 유지",
+      "key_reasons": [
+        "현재가가 피보나치 50% 되돌림($415.36)과 최대 매물대($410.87~$424.39) 내 위치, 방향성 미결정 상태",
+        "MACD 히스토그램 음전환(-0.61)·SMA20 하회 등 단기 모멘텀 하향, 거래량 평균 대비 극히 저조(0.16x)",
+        "Q2 FY2026 어닝 비트·RPO 110% 급증·애널리스트 전원 매수·컨센 목표가 $587로 중장기 펀더멘털 견고"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 418.57,
+      "daily_change_pct": -0.73,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-05-26T09:45:00-04:00",
+      "price_retrieved_at": "2026-05-26T09:45:08.803305-04:00",
+      "price_age_minutes": 0.1,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-05-26T09:30:00-04:00",
+      "market_close": "2026-05-26T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-05-26T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": true,
+        "ticker": "MSFT",
+        "question": "Will Microsoft Corporation (MSFT) hit (HIGH) $495 in May?",
+        "probability_yes_pct": 0.7,
+        "probability_no_pct": 99.4,
+        "question_direction": "unknown",
+        "polymarket_direction": "unknown",
+        "liquidity_usd": 8230.0,
+        "end_date": "2026-06-01T03:59:59.999Z",
+        "market_id": "2073886",
+        "url": "https://polymarket.com/event/will-msft-reach-495-in-may-2026"
+      },
+      "polymarket_comparison": {
+        "match": "중립",
+        "message": "Claude(neutral) vs Polymarket(unknown, 0.7%) — 한쪽 불확실, 추가 확인 필요",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 2,
+        "direction_counts": {
+          "neutral": 1,
+          "bullish": 1
+        },
+        "warnings": []
+      }
+    },
+    {
+      "ticker": "ORCL",
+      "current_price": 193.85,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        188.5,
+        183.0,
+        178.0
+      ],
+      "stop_prices": [
+        185.5,
+        178.0,
+        172.0
+      ],
+      "outlook_short": "$195.01~$195.12 저항 돌파 여부 관건, 실패 시 $188~$192 재조정 예상",
+      "outlook_mid": "Q4 실적(6/10) 촉매 여부에 따라 $200 안착 또는 $175~$180 눌림 가능",
+      "outlook_long": "AI 인프라 $553B 백로그 전환 확인 시 $220~$244 회복 시도, 목표가 컨센서스 $244",
+      "key_reasons": [
+        "Q3 FY2026 클라우드 +44%, AI인프라 +243% YoY — 15년 만에 최고 성장; $553B RPO 백로그로 중장기 성장 가시성 높음",
+        "기술적으로 SMA20/50 상회 중이나 MACD 히스토그램 음전환 + SMA200($207.7) 미도달 + 최대 매물대 혼전 구간 위치로 단기 진입 리스크 존재",
+        "공매도 비율 1~1.6%(Float)로 매우 낮아 Short Squeeze 기대 어려움; 부채 $1,346억·AI 매출 품질 우려·OpenAI 집중 리스크($3,000억+)가 테마 리스크 요인"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 192.08,
+      "daily_change_pct": 0.92,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-05-26T09:48:00-04:00",
+      "price_retrieved_at": "2026-05-26T09:48:10.753220-04:00",
+      "price_age_minutes": 0.2,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-05-26T09:30:00-04:00",
+      "market_close": "2026-05-26T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-05-26T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "ORCL",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 2,
+        "direction_counts": {
+          "neutral": 1,
+          "bullish": 1
+        },
+        "warnings": []
+      }
+    }
+  ]
+}
