@@ -1,0 +1,902 @@
+{
+  "date": "2026-06-01",
+  "generated_at": "2026-06-01T10:15:20.371814-04:00",
+  "tickers": [
+    {
+      "ticker": "MSFT",
+      "current_price": 463.14,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "관망",
+      "direction": "bullish",
+      "entry_prices": [
+        456.89,
+        437.92
+      ],
+      "stop_prices": [
+        445.07,
+        437.92,
+        424.39
+      ],
+      "outlook_short": "Build 2026 이벤트 이후 RSI 과매수 해소 국면, $456~465 박스권 횡보 또는 단기 되돌림 가능성 우세",
+      "outlook_mid": "Project Polaris 발표·Azure 40% 성장 실현 확인 시 $478~$492 저항 돌파 시도, SMA200 반전이 핵심 트리거",
+      "outlook_long": "AI ARR $370억 및 수주잔고 $6,270억 기반 컨센서스 목표가 $560~$575 향한 구조적 상승 유효, 단 capex 부담과 OpenAI 관계 변화가 리스크 요인",
+      "key_reasons": [
+        "Build 2026 직전 급등(5일 +12.3%)으로 RSI 73.5·Stochastic K=92.5 과매수, 즉시 진입은 core_theme 분할 매수 원칙과 배치",
+        "Project Polaris 발표·Pershing Square 지분 공시·EY $10억 파트너십 등 AI 모멘텀 펀더멘털 강세, 중장기 테시스 유효",
+        "공매도 잔고 SI 1.06%(Float) 극저수준으로 Short Squeeze 연료 부재, $465~$470 콜 OI 집중으로 단기 저항 형성"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 450.24,
+      "daily_change_pct": 2.87,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T09:45:00-04:00",
+      "price_retrieved_at": "2026-06-01T09:45:07.586359-04:00",
+      "price_age_minutes": 0.1,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": true,
+        "ticker": "MSFT",
+        "question": "Will Microsoft Corporation (MSFT) hit (HIGH) $495 Week of June 1 2026?",
+        "probability_yes_pct": 16.5,
+        "probability_no_pct": 83.5,
+        "question_direction": "unknown",
+        "polymarket_direction": "unknown",
+        "liquidity_usd": 2586.0,
+        "end_date": "2026-06-05T20:00:00Z",
+        "market_id": "2388662",
+        "url": "https://polymarket.com/event/will-msft-reach-495-by-june-1-2026"
+      },
+      "polymarket_comparison": {
+        "match": "중립",
+        "message": "Claude(bullish) vs Polymarket(unknown, 16.5%) — 한쪽 불확실, 추가 확인 필요",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "ORCL",
+      "current_price": 232.13,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "관망",
+      "direction": "bullish",
+      "entry_prices": [
+        223.0,
+        214.0,
+        195.0
+      ],
+      "stop_prices": [
+        208.0,
+        193.5,
+        178.5
+      ],
+      "outlook_short": "RSI 77·Stochastic 97 과매수 + $233.75 저항 + 거래량 소멸로 단기 $225~$234 레인지 횡보 또는 소폭 조정 예상",
+      "outlook_mid": "6/10 실적 발표가 분수령 — Beat+가이던스 상향 시 $255~$275 상방, Miss 시 $195~$210 되돌림",
+      "outlook_long": "$553B RPO, OCI 84% 성장, 미정부 $30B 계약 등 AI 인프라 테마 구조적 강세 유효, 단 부채$149B·capex$50B 리스크 지속 모니터링 필요",
+      "key_reasons": [
+        "5거래일 +21.6% 급등으로 RSI 77·Stochastic 97 극단 과매수 — 풀백 후 진입 원칙 적용",
+        "6/10 실적 발표(EPS $1.58 추정) 이벤트 리스크 — RPO 현금화 속도·capex 가이던스가 주가 방향 결정",
+        "AI 인프라 thesis 유효: $553B RPO +325% YoY, OCI +84%, $30B 미정부 계약, 다수 애널리스트 목표주가 $255~$275"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 225.78,
+      "daily_change_pct": 2.81,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T09:48:00-04:00",
+      "price_retrieved_at": "2026-06-01T09:48:09.026879-04:00",
+      "price_age_minutes": 0.2,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "ORCL",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "VST",
+      "current_price": 153.65,
+      "investment_profile": "core_theme",
+      "investment_horizon": "3-12 months",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        152.65,
+        150.75,
+        145.0
+      ],
+      "stop_prices": [
+        143.4,
+        140.0,
+        132.0
+      ],
+      "outlook_short": "SMA50($154.1) 하방 이탈 시도 중, $150~$157 박스권 등락 예상. 종가 확인 필요.",
+      "outlook_mid": "Cogentrix 인수 진전 및 Q2 EPS($2.02) 기대감으로 $160~$168 매물대 재도전 가능.",
+      "outlook_long": "Meta PPA 수익화 및 AI 전력 수요 구조 성장 시 SMA200($172.98) 회복 후 $180~$200 목표.",
+      "key_reasons": [
+        "Q1 2026 EPS $1.46 (추정치 $1.32 +10.5% 서프라이즈), 순이익 $10.3억으로 전년 적자에서 흑자 전환",
+        "Meta 2.1GW 핵발전 PPA + Cogentrix 5,500MW 인수로 중장기 EBITDA 상방 옵션 대형화",
+        "현재가 SMA50·Fib38.2% 수렴 구간($153~$154) 이탈 시도 중 — 분할 진입 구간이나 종가 확인 필수"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 160.23,
+      "daily_change_pct": -4.1,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T09:51:00-04:00",
+      "price_retrieved_at": "2026-06-01T09:51:29.751951-04:00",
+      "price_age_minutes": 0.5,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "1-4 week pullback / staged accumulation",
+      "risk_style": "technical invalidation plus thesis risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "VST",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "OKLO",
+      "current_price": 66.88,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "neutral",
+      "entry_prices": [
+        66.2,
+        64.5
+      ],
+      "stop_prices": [
+        63.6,
+        62.0,
+        58.5
+      ],
+      "outlook_short": "$64.50~$69.47 박스권 등락, 거래량 회복 전까지 방향성 불투명",
+      "outlook_mid": "7월 4일 INL 임계점 달성 성공 시 $75~$82 회복 시나리오 유효",
+      "outlook_long": "Aurora 상업운전(2027~2028) 및 AI 전력 수요 테마로 $85~$115 재도전 가능, 현 밸류에이션 리스크 병존",
+      "key_reasons": [
+        "최대 매물대($63.50~$69.47, 거래량 3.2억 주) 내 위치로 단기 박스권 확인, 방향 돌파 필요",
+        "MACD 음전환·SMA20 하회·거래량 0.22x로 기술적 모멘텀 부재, 적극 진입 근거 미흡",
+        "DOE 플루토늄 선정·NRC PDC 승인·BofA 매수 복수 촉매 발생, 7월 4일 임계점이 단기 핵심 트리거",
+        "SI ~16~18% 유의미하나 Days to Cover ~3일로 단기 Squeeze 조건 제한적",
+        "6월 5일 만기 PCR 1.93으로 단기 풋 헤지 우세, $65 풋 OI 집중으로 하방 압력 상존"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 66.88,
+      "daily_change_pct": -0.01,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T09:54:00-04:00",
+      "price_retrieved_at": "2026-06-01T09:54:30.745041-04:00",
+      "price_age_minutes": 0.5,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "OKLO",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "SMR",
+      "current_price": 12.36,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "neutral",
+      "entry_prices": [
+        12.11,
+        11.6,
+        11.05
+      ],
+      "stop_prices": [
+        11.78,
+        11.36,
+        10.78
+      ],
+      "outlook_short": "RBC 컨퍼런스(6/2) 이벤트 + $12.88 저항 돌파 여부에 따라 $12~$13.10 박스권 등락 예상",
+      "outlook_mid": "루마니아 RoPower mid-2026 결정 임박, 이벤트 드리븐 변동성 확대, $11~$14 레인지 예상",
+      "outlook_long": "실질 매출 2030년대 초 예상, AI+원자력 테마 유효하나 PPA/계약 전환이 구조적 상승의 핵심 조건",
+      "key_reasons": [
+        "현재가 $12.36이 120일 최대 매물대($11.64~$12.88) 중심에 위치, $12.88 돌파 전까지 양방향 압력",
+        "공매도 비율 38.92%(4/15 기준)의 높은 SI와 베타 3.46의 초고변동성 — 숏스퀴즈 vs 추가 하락 이중 리스크",
+        "MACD 히스토그램 양전환 + SMA 정배열 초기이나 거래량 비율 0.32x로 모멘텀 미확인 상태"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 12.67,
+      "daily_change_pct": -2.43,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T09:57:00-04:00",
+      "price_retrieved_at": "2026-06-01T09:57:26.411941-04:00",
+      "price_age_minutes": 0.4,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "SMR",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "IREN",
+      "current_price": 61.06,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        60.0,
+        58.61,
+        55.41
+      ],
+      "stop_prices": [
+        57.85,
+        55.41,
+        52.36
+      ],
+      "outlook_short": "$58~$63 박스권 등락 예상, $3.65B 파이낸싱 호재 하방 지지 기대하나 5/27 고점 대비 조정 지속 가능",
+      "outlook_mid": "Russell 3000/2000 편입 확정(6/26) 패시브 유입 + 480MW AI Cloud 확장 모멘텀으로 $68 돌파 시도 예상",
+      "outlook_long": "Childress Blackwell 시스템 가동(2027초) 가시화 + ARR $4.4B 전망 → 컨센서스 목표가 $79.84 방향 유효",
+      "key_reasons": [
+        "2026-06-01 $3.65B 투자등급 GPU 파이낸싱 클로즈 (Microsoft 계약 이행, 올인 비용 3.31%, Fitch A등급) — 재무 구조 강화",
+        "Dell $1.6B Blackwell 시스템 구매 + Russell 3000/2000 편입 예정(6/26) — 이중 촉매로 중기 수급 개선 기대",
+        "Short Interest ~16.87%/Float, Days to Cover ~1.0일, Borrow Fee 0.28% — 현재 Short Squeeze 조건 미충족이나 대형 촉매 시 커버링 가능",
+        "PCR 3.01(6/5 만기) 과도한 풋 편중 + 5/27 고점 대비 -10% 조정 + 거래량 0.17x — 단기 방향성 미확정, 지지 확인 후 진입 권장",
+        "SMA 20/50/200 완벽 정배열 + MACD 양수 히스토그램 유지 — 중기 상승 추세 구조 유효, Fib 38.2%($59.67) 지지 테스트 중"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 63.54,
+      "daily_change_pct": -3.9,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T09:59:00-04:00",
+      "price_retrieved_at": "2026-06-01T10:00:32.635209-04:00",
+      "price_age_minutes": 1.5,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "IREN",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "CORZ",
+      "current_price": 27.39,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        26.85,
+        25.79,
+        24.42
+      ],
+      "stop_prices": [
+        25.3,
+        24.42,
+        23.0
+      ],
+      "outlook_short": "RSI·Stoch 과매수 + $28.19 신고가 저항 + 거래량 소멸로 단기 $25.79 풀백 시나리오 우세, 돌파 시 $30 타겟",
+      "outlook_mid": "450MW 용량 인도(2Q26) 이벤트 + CoreWeave 매출 가시화 시 $30~$32 돌파 가능, SI 19.6% short squeeze 촉매 잠재",
+      "outlook_long": "4.5GW 파이프라인 + 수익성 전환 이행 속도가 핵심, 성공 시 $35+ 재평가 가능하나 $3.3B 부채 레버리지 리스크 상존",
+      "key_reasons": [
+        "RSI 69.24 + Stoch K=86.82 과매수 경계, 52주 신고가($28.19) 직하단 저항 + 거래량 0.11x 소멸로 직접 진입 비효율",
+        "콜로케이션 매출이 운영비 완전 충당하는 임계 이정표 달성($115.24M Q1 매출), AI 인프라 전환 테마 중장기 유효",
+        "6/12 만기 PCR 1.86($25.5 풋 집중)이 단기 조정 가능성 내포, $24.42~$25.79 풀백 진입 또는 $28.30 돌파 추격이 최적 전략"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 26.85,
+      "daily_change_pct": 2.01,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T10:03:00-04:00",
+      "price_retrieved_at": "2026-06-01T10:03:39.179508-04:00",
+      "price_age_minutes": 0.7,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "CORZ",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "AVAV",
+      "current_price": 200.32,
+      "investment_profile": "growth_theme",
+      "investment_horizon": "2-6 months",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        196.22,
+        193.63,
+        185.23
+      ],
+      "stop_prices": [
+        193.0,
+        182.0,
+        174.0
+      ],
+      "outlook_short": "급등 후 되돌림 소화 구간, $196~$205 박스권 예상, $201.98 저항 돌파 여부 핵심",
+      "outlook_mid": "클래스 액션 불확실성 잔존하나 계약 모멘텀 지속 시 $220~$230 매물대 테스트 가능",
+      "outlook_long": "SCAR 재경쟁 결과 및 신규 경영진 실행력 확인 전까지 SMA200($262) 하방 횡보 리스크, 강세 시나리오 $250+ 회복 가능",
+      "key_reasons": [
+        "5/28 $20M AFRL + $20.2M Huntsville 이중 계약 발표로 +18% 급등, 실질 카탈리스트 기반 반등",
+        "현재가 바로 위 최대 매물대($204.97~$228.46, 56M 거래량) → 단기 저항 매우 무거움",
+        "복수 클래스 액션 소송(SCAR 계약 해지·재경쟁) + Q3 영업손실 $179M + 굿윌 상각 $151M 펀더멘털 리스크 잔존"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 207.24,
+      "daily_change_pct": -3.34,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T10:06:00-04:00",
+      "price_retrieved_at": "2026-06-01T10:06:38.386292-04:00",
+      "price_age_minutes": 0.6,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "1-3 week pullback or constructive momentum continuation",
+      "risk_style": "technical invalidation plus catalyst or backlog risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "AVAV",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "ONDS",
+      "current_price": 13.31,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "중립",
+      "direction": "bullish",
+      "entry_prices": [
+        12.83,
+        12.12,
+        10.9
+      ],
+      "stop_prices": [
+        12.15,
+        11.35,
+        9.6
+      ],
+      "outlook_short": "단기 과매수·거래량 급감으로 $12.80~$13.78 박스 소화 국면, 눌림 후 재차 $13.78 저항 도전 예상",
+      "outlook_mid": "트럼프 드론 펀딩 공식화 또는 Q2 실적 가시화 시 52주 고점 $15.28 돌파 시도 가능, 희석 리스크 상존",
+      "outlook_long": "2026 가이던스 $390M 달성·Pentagon 프로그램 구체화 성공 시 애널리스트 목표가 $19.83 접근, 실패 시 $8~$10 재진입 리스크",
+      "key_reasons": [
+        "Q1 2026 매출 $50.1M(예상 대비 +31%), 백로그 $457M, 가이던스 $390M+ 상향으로 펀더멘털 모멘텀 강력",
+        "5거래일 +36% 급등 후 RSI 68.93·Stoch K 89.87 과매수 + 오늘 거래량 0.28배 급감 → 즉각 추격 매수 비권장",
+        "공매도 비율 33~34%(~1.64억 주) + 수권주 12억 주 확대 추진 = Short Squeeze 잠재력 vs 희석 리스크 공존"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 13.22,
+      "daily_change_pct": 0.72,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T10:09:00-04:00",
+      "price_retrieved_at": "2026-06-01T10:09:40.351334-04:00",
+      "price_age_minutes": 0.7,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": true,
+        "ticker": "ONDS",
+        "question": "Will Coinbase Global, Inc. (COIN) hit (LOW) $187.50 Week of June 1 2026?",
+        "probability_yes_pct": 100.0,
+        "probability_no_pct": 0.1,
+        "question_direction": "unknown",
+        "polymarket_direction": "unknown",
+        "liquidity_usd": 37485.0,
+        "end_date": "2026-06-05T20:00:00Z",
+        "market_id": "2389215",
+        "url": "https://polymarket.com/event/will-coin-dip-to-187-50-by-june-1-2026"
+      },
+      "polymarket_comparison": {
+        "match": "중립",
+        "message": "Claude(bullish) vs Polymarket(unknown, 100.0%) — 한쪽 불확실, 추가 확인 필요",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    },
+    {
+      "ticker": "RDW",
+      "current_price": 20.85,
+      "investment_profile": "high_vol_swing",
+      "investment_horizon": "1-8 weeks within a longer theme",
+      "entry_suitability": "관망",
+      "direction": "neutral",
+      "entry_prices": [
+        19.2,
+        17.54
+      ],
+      "stop_prices": [
+        17.54,
+        15.87
+      ],
+      "outlook_short": "Blue Origin 폭발 충격+거래량 공백으로 $19.20 지지 여부가 분수령, 반전 캔들 미확인 시 추가 하락 가능",
+      "outlook_mid": "SpaceX IPO(6/12) 전후 변동성 극대화, 성공 시 재랠리/실패 시 섹터 리레이팅 하방 리스크로 레인지 $17~$24 예상",
+      "outlook_long": "레코드 백로그 $498M·2026 가이던스 $450~500M 기반 펀더멘털 중장기 긍정적이나, 현 주가는 월가 목표가 대폭 상회 상태로 밸류에이션 리스크 상존",
+      "key_reasons": [
+        "Blue Origin New Glenn 폭발(5/28)로 우주섹터 전반 급락, 오늘 -15% 하락 진행 중이며 방향성 미확정",
+        "현재가 매물 공백 구간($20.06~$22.01, 거래량 18M) 위치 + 직하방 매물 0 → 지지 이탈 시 낙폭 가속 위험",
+        "SpaceX IPO(6/12) 이벤트 양면성: 성공 시 스필오버 랠리 재점화, 실패 시 대체투자 수요 소멸로 섹터 전체 하방 압력"
+      ],
+      "summary_parse_status": "ok",
+      "prev_close": 24.57,
+      "daily_change_pct": -15.14,
+      "price_source": "yfinance_1m_intraday_close",
+      "price_as_of": "2026-06-01T10:12:00-04:00",
+      "price_retrieved_at": "2026-06-01T10:12:45.210786-04:00",
+      "price_age_minutes": 0.8,
+      "price_status": "fresh",
+      "price_is_stale": false,
+      "price_warning": null,
+      "market_session": "regular",
+      "market_open": "2026-06-01T09:30:00-04:00",
+      "market_close": "2026-06-01T16:00:00-04:00",
+      "data_delay_note": "Yahoo/yfinance is not an exchange-certified real-time feed; quote data can be delayed.",
+      "indicator_as_of": "2026-06-01T00:00:00-04:00",
+      "indicator_basis": "1d unadjusted OHLCV; current_price is anchored to the live price snapshot above.",
+      "entry_style": "short-term momentum continuation or sharp pullback",
+      "risk_style": "technical invalidation with tighter ATR-defined risk",
+      "polymarket": {
+        "available": false,
+        "ticker": "RDW",
+        "reason": "No relevant prediction market found"
+      },
+      "polymarket_comparison": {
+        "match": "N/A",
+        "message": "Polymarket에 관련 시장 없음",
+        "confidence_boost": 0
+      },
+      "polymarket_claude_review": {
+        "review_status": "skipped",
+        "confidence_adjustment": "ignore",
+        "adjustment_magnitude": "none",
+        "final_direction_after_polymarket": "unchanged",
+        "final_confidence_after_polymarket": "unknown",
+        "reason": "Polymarket market was unavailable, weak, neutral, or directionally unclear."
+      },
+      "portfolio_context": {
+        "total_tickers": 10,
+        "direction_counts": {
+          "bullish": 7,
+          "neutral": 3
+        },
+        "warnings": [
+          {
+            "type": "theme_concentration",
+            "severity": "medium",
+            "theme": "ai_infrastructure",
+            "direction": "bullish",
+            "count": 5,
+            "tickers": [
+              "CORZ",
+              "IREN",
+              "MSFT",
+              "OKLO",
+              "ORCL",
+              "SMR",
+              "VST"
+            ],
+            "message": "ai_infrastructure: 5/7 mapped tickers are bullish (CORZ, IREN, MSFT, OKLO, ORCL, SMR, VST)."
+          }
+        ]
+      }
+    }
+  ]
+}
