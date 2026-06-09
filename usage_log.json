@@ -1645,6 +1645,99 @@
           "cost_usd": 0.3529
         }
       ]
+    },
+    "2026-06-09": {
+      "tickers_analyzed": 10,
+      "total_calls": 10,
+      "analysis_calls": 10,
+      "review_calls": 0,
+      "input_tokens": 605588,
+      "output_tokens": 72479,
+      "web_searches": 33,
+      "cost_usd": 3.2339,
+      "model": "claude-sonnet-4-6",
+      "calls": [
+        {
+          "ticker": "MSFT",
+          "call_type": "analysis",
+          "input_tokens": 70331,
+          "output_tokens": 7169,
+          "web_searches": 4,
+          "cost_usd": 0.3585
+        },
+        {
+          "ticker": "ORCL",
+          "call_type": "analysis",
+          "input_tokens": 75909,
+          "output_tokens": 8264,
+          "web_searches": 4,
+          "cost_usd": 0.3917
+        },
+        {
+          "ticker": "VST",
+          "call_type": "analysis",
+          "input_tokens": 62392,
+          "output_tokens": 7513,
+          "web_searches": 4,
+          "cost_usd": 0.3399
+        },
+        {
+          "ticker": "OKLO",
+          "call_type": "analysis",
+          "input_tokens": 46069,
+          "output_tokens": 7031,
+          "web_searches": 3,
+          "cost_usd": 0.2737
+        },
+        {
+          "ticker": "SMR",
+          "call_type": "analysis",
+          "input_tokens": 45670,
+          "output_tokens": 7257,
+          "web_searches": 3,
+          "cost_usd": 0.2759
+        },
+        {
+          "ticker": "IREN",
+          "call_type": "analysis",
+          "input_tokens": 48992,
+          "output_tokens": 7146,
+          "web_searches": 3,
+          "cost_usd": 0.2842
+        },
+        {
+          "ticker": "CORZ",
+          "call_type": "analysis",
+          "input_tokens": 62449,
+          "output_tokens": 7226,
+          "web_searches": 3,
+          "cost_usd": 0.3257
+        },
+        {
+          "ticker": "AVAV",
+          "call_type": "analysis",
+          "input_tokens": 61070,
+          "output_tokens": 6970,
+          "web_searches": 3,
+          "cost_usd": 0.3178
+        },
+        {
+          "ticker": "ONDS",
+          "call_type": "analysis",
+          "input_tokens": 67499,
+          "output_tokens": 6595,
+          "web_searches": 3,
+          "cost_usd": 0.3314
+        },
+        {
+          "ticker": "RDW",
+          "call_type": "analysis",
+          "input_tokens": 65207,
+          "output_tokens": 7308,
+          "web_searches": 3,
+          "cost_usd": 0.3352
+        }
+      ]
     }
   }
 }
