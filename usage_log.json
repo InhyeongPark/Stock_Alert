@@ -1831,6 +1831,67 @@
           "cost_usd": 0.3378
         }
       ]
+    },
+    "2026-06-11": {
+      "tickers_analyzed": 6,
+      "total_calls": 6,
+      "analysis_calls": 6,
+      "review_calls": 0,
+      "input_tokens": 349366,
+      "output_tokens": 42585,
+      "web_searches": 18,
+      "cost_usd": 1.8669,
+      "model": "claude-sonnet-4-6",
+      "calls": [
+        {
+          "ticker": "MSFT",
+          "call_type": "analysis",
+          "input_tokens": 56701,
+          "output_tokens": 7216,
+          "web_searches": 3,
+          "cost_usd": 0.3083
+        },
+        {
+          "ticker": "ORCL",
+          "call_type": "analysis",
+          "input_tokens": 61990,
+          "output_tokens": 6768,
+          "web_searches": 3,
+          "cost_usd": 0.3175
+        },
+        {
+          "ticker": "SMR",
+          "call_type": "analysis",
+          "input_tokens": 46220,
+          "output_tokens": 7454,
+          "web_searches": 3,
+          "cost_usd": 0.2805
+        },
+        {
+          "ticker": "IREN",
+          "call_type": "analysis",
+          "input_tokens": 55079,
+          "output_tokens": 7289,
+          "web_searches": 3,
+          "cost_usd": 0.3046
+        },
+        {
+          "ticker": "RDW",
+          "call_type": "analysis",
+          "input_tokens": 72991,
+          "output_tokens": 7307,
+          "web_searches": 3,
+          "cost_usd": 0.3586
+        },
+        {
+          "ticker": "AMD",
+          "call_type": "analysis",
+          "input_tokens": 56385,
+          "output_tokens": 6551,
+          "web_searches": 3,
+          "cost_usd": 0.2974
+        }
+      ]
     }
   }
 }
